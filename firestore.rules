@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if the requesting user is an admin
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Products and categories: public read, admin write from client
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Orders: users read own; admin read/write all; customer order creation via Admin SDK only
+    match /orders/{orderId} {
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Users: read own, write non-admin fields only; admin can read all
+    match /users/{userId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'createdAt']);
+    }
+
+    // Counters: no client access (Admin SDK only)
+    match /counters/{counterId} {
+      allow read, write: if false;
+    }
+  }
+}
