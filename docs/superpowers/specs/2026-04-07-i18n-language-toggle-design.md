@@ -32,6 +32,7 @@ Follows the existing `AuthProvider` pattern in `src/lib/firebase/auth-context.ts
 - On mount, read saved locale from localStorage
 - `setLocale(locale)` updates state + writes to localStorage
 - No URL-based routing, no middleware, no server-side locale detection
+- Known trade-off: returning English users will see a brief flash of Vietnamese on first render (state initializes to "vi", then useEffect reads localStorage). This matches the existing auth loading pattern and is acceptable for this use case.
 
 ## Translation Keys
 
@@ -68,7 +69,7 @@ Translation keys are defined as a TypeScript type in `translations.ts`. The dict
 
 ## Toggle Button
 
-Located in the Header component (`src/components/layout/Header.tsx`), in the nav bar before the "Products" link.
+Located in the Header component (`src/components/layout/Header.tsx`), placed next to the site logo in the top bar (outside the `hidden md:flex` nav container). This ensures the toggle is visible on all screen sizes, including mobile.
 
 **Behavior**: Shows what language you switch TO:
 - In Vietnamese mode: button shows "EN" (click to switch to English)
