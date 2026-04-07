@@ -1,0 +1,92 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import { useAuth } from "@/lib/firebase/auth-context";
+import { OrderCard } from "@/components/orders/OrderCard";
+import { Button } from "@/components/ui/Button";
+import type { Order } from "@/lib/types";
+
+export default function OrdersPage() {
+  const { user, loading: authLoading, signIn } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function fetchOrders() {
+      const snap = await getDocs(
+        query(
+          collection(db, "orders"),
+          where("userId", "==", user!.id),
+          orderBy("createdAt", "desc")
+        )
+      );
+
+      setOrders(
+        snap.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate() ?? new Date(),
+            updatedAt: data.updatedAt?.toDate() ?? new Date(),
+          } as Order;
+        })
+      );
+      setLoading(false);
+    }
+    fetchOrders();
+  }, [user]);
+
+  if (authLoading) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 w-48 rounded bg-gray-200" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <h1 className="text-xl font-bold text-gray-900">Sign in to view orders</h1>
+        <Button className="mt-4" onClick={signIn}>
+          Sign In with Google
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <h1 className="mb-6 text-2xl font-bold text-gray-900">My Orders</h1>
+
+      {loading ? (
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-24 animate-pulse rounded-lg bg-gray-200" />
+          ))}
+        </div>
+      ) : orders.length === 0 ? (
+        <p className="py-12 text-center text-gray-500">No orders yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {orders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
