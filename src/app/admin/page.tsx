@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
       }
     }
   }
-  const topProducts = [...productSales.values()]
+  const topProducts = Array.from(productSales.values())
     .sort((a, b) => b.sold - a.sold)
     .slice(0, 5);
 
