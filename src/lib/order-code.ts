@@ -1,10 +1,14 @@
 import { adminDb } from "./firebase/admin";
-import type { Transaction } from "firebase-admin/firestore";
+import type { Transaction, DocumentSnapshot, DocumentReference } from "firebase-admin/firestore";
 
-// Must be called within an existing transaction -- do NOT create a nested transaction.
-export async function generateOrderCode(tx: Transaction): Promise<string> {
-  const counterRef = adminDb.collection("counters").doc("orders");
-  const counterDoc = await tx.get(counterRef);
+export const orderCounterRef = adminDb.collection("counters").doc("orders");
+
+// Synchronous — caller must have already read counterDoc before any writes.
+export function generateOrderCode(
+  tx: Transaction,
+  counterRef: DocumentReference,
+  counterDoc: DocumentSnapshot
+): string {
   let nextVal = 1;
 
   if (counterDoc.exists) {

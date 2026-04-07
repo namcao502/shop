@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { verifyAuth } from "@/lib/verify-admin";
-import { generateOrderCode } from "@/lib/order-code";
+import { generateOrderCode, orderCounterRef } from "@/lib/order-code";
 import { FieldValue } from "firebase-admin/firestore";
 import type { ShippingAddress, PaymentMethod, OrderItem } from "@/lib/types";
 
@@ -35,12 +35,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await adminDb.runTransaction(async (tx) => {
-      // 1. Read all product documents and verify stock
+      // 1. All reads first
       const productRefs = body.items.map((item) =>
         adminDb.collection("products").doc(item.productId)
       );
-      const productDocs = await Promise.all(productRefs.map((ref) => tx.get(ref)));
+      const [productDocs, counterDoc] = await Promise.all([
+        Promise.all(productRefs.map((ref) => tx.get(ref))),
+        tx.get(orderCounterRef),
+      ]);
 
+      // 2. Validate products
       const orderItems: OrderItem[] = [];
       let subtotal = 0;
 
@@ -64,9 +68,6 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Decrement stock
-        tx.update(productRefs[i], { stock: data.stock - reqItem.qty });
-
         orderItems.push({
           productId: reqItem.productId,
           name: data.name,
@@ -77,8 +78,13 @@ export async function POST(request: NextRequest) {
         subtotal += data.price * reqItem.qty;
       }
 
-      // 2. Generate order code (within same transaction -- no nesting)
-      const orderCode = await generateOrderCode(tx);
+      // 3. All writes
+      for (let i = 0; i < body.items.length; i++) {
+        const data = productDocs[i].data()!;
+        tx.update(productRefs[i], { stock: data.stock - body.items[i].qty });
+      }
+
+      const orderCode = generateOrderCode(tx, orderCounterRef, counterDoc);
 
       // 3. Create order document
       const orderRef = adminDb.collection("orders").doc();
