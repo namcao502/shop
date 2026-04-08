@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
+import type { TranslationKey } from "@/lib/i18n/translations";
 import type { Order } from "@/lib/types";
 
 interface RecentOrdersTableProps {
@@ -8,19 +12,22 @@ interface RecentOrdersTableProps {
 }
 
 export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
+  const { locale, t } = useLocale();
+  const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
+
   return (
     <div className="rounded-lg border bg-white">
       <div className="border-b px-4 py-3">
-        <h3 className="font-medium text-gray-900">Recent Orders</h3>
+        <h3 className="font-medium text-gray-900">{t("admin.recentOrders")}</h3>
       </div>
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left text-xs uppercase text-gray-500">
-            <th className="px-4 py-2">Order</th>
-            <th className="px-4 py-2">Amount</th>
-            <th className="px-4 py-2">Payment</th>
-            <th className="px-4 py-2">Status</th>
-            <th className="px-4 py-2">Date</th>
+            <th className="px-4 py-2">{t("admin.colOrder")}</th>
+            <th className="px-4 py-2">{t("admin.colAmount")}</th>
+            <th className="px-4 py-2">{t("admin.colPayment")}</th>
+            <th className="px-4 py-2">{t("admin.colStatus")}</th>
+            <th className="px-4 py-2">{t("admin.colDate")}</th>
           </tr>
         </thead>
         <tbody>
@@ -34,19 +41,19 @@ export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                   {order.orderCode}
                 </Link>
               </td>
-              <td className="px-4 py-2">{formatPrice(order.totalAmount)}</td>
+              <td className="px-4 py-2">{formatPrice(order.totalAmount, fmtLocale)}</td>
               <td className="px-4 py-2">
                 <Badge variant={order.paymentStatus}>
-                  {order.paymentStatus}
+                  {t(`status.${order.paymentStatus}` as TranslationKey)}
                 </Badge>
               </td>
               <td className="px-4 py-2">
                 <Badge variant={order.orderStatus}>
-                  {order.orderStatus}
+                  {t(`status.${order.orderStatus}` as TranslationKey)}
                 </Badge>
               </td>
               <td className="px-4 py-2 text-gray-500">
-                {formatDate(order.createdAt)}
+                {formatDate(order.createdAt, fmtLocale)}
               </td>
             </tr>
           ))}

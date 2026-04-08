@@ -8,9 +8,11 @@ import { RecentOrdersTable } from "@/components/admin/RecentOrdersTable";
 import { TopProducts } from "@/components/admin/TopProducts";
 import { StatusBreakdown } from "@/components/admin/StatusBreakdown";
 import { formatPrice } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Order, OrderStatus } from "@/lib/types";
 
 export default function AdminDashboardPage() {
+  const { locale, t } = useLocale();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -81,27 +83,28 @@ export default function AdminDashboardPage() {
     statusCounts[order.orderStatus]++;
   }
 
+  const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
   const kpis = [
-    { label: "Revenue Today", value: formatPrice(todayRevenue) },
+    { label: t("admin.revenueToday"), value: formatPrice(todayRevenue, fmtLocale) },
     {
-      label: "Orders Today",
+      label: t("admin.ordersToday"),
       value: String(todayOrders.length),
-      sub: `${todayOrders.filter((o) => o.paymentStatus === "pending").length} pending`,
+      sub: `${todayOrders.filter((o) => o.paymentStatus === "pending").length} ${t("admin.pendingLabel")}`,
     },
     {
-      label: "Revenue This Month",
-      value: formatPrice(monthRevenue),
-      sub: `${paidOrders.filter((o) => o.createdAt >= monthStart).length} orders`,
+      label: t("admin.revenueMonth"),
+      value: formatPrice(monthRevenue, fmtLocale),
+      sub: `${paidOrders.filter((o) => o.createdAt >= monthStart).length} ${t("admin.ordersLabel")}`,
     },
     {
-      label: "Pending Payment",
+      label: t("admin.pendingPayment"),
       value: String(orders.filter((o) => o.paymentStatus === "pending").length),
     },
   ];
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t("admin.dashboard")}</h1>
       <KPICards kpis={kpis} />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

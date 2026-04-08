@@ -7,10 +7,14 @@ import { db } from "@/lib/firebase/config";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
+import type { TranslationKey } from "@/lib/i18n/translations";
 import type { Order } from "@/lib/types";
 
 export default function OrderDetailPage() {
   const params = useParams();
+  const { locale, t } = useLocale();
+  const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,7 +49,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">Order not found</h1>
+        <h1 className="text-xl font-bold text-gray-900">{t("order.notFound")}</h1>
       </div>
     );
   }
@@ -54,10 +58,10 @@ export default function OrderDetailPage() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">
-          Order {order.orderCode}
+          {t("order.order")} {order.orderCode}
         </h1>
         <span className="text-sm text-gray-500">
-          {formatDate(order.createdAt)}
+          {formatDate(order.createdAt, fmtLocale)}
         </span>
       </div>
 
@@ -69,24 +73,24 @@ export default function OrderDetailPage() {
       {/* Status badges */}
       <div className="mb-6 flex gap-3">
         <div>
-          <span className="text-xs text-gray-500">Payment:</span>{" "}
-          <Badge variant={order.paymentStatus}>{order.paymentStatus}</Badge>
+          <span className="text-xs text-gray-500">{t("order.payment")}</span>{" "}
+          <Badge variant={order.paymentStatus}>{t(`status.${order.paymentStatus}` as TranslationKey)}</Badge>
         </div>
         <div>
-          <span className="text-xs text-gray-500">Order:</span>{" "}
-          <Badge variant={order.orderStatus}>{order.orderStatus}</Badge>
+          <span className="text-xs text-gray-500">{t("order.order")}</span>{" "}
+          <Badge variant={order.orderStatus}>{t(`status.${order.orderStatus}` as TranslationKey)}</Badge>
         </div>
         <div>
-          <span className="text-xs text-gray-500">Method:</span>{" "}
+          <span className="text-xs text-gray-500">{t("order.method")}</span>{" "}
           <span className="text-sm font-medium">
-            {order.paymentMethod === "vietqr" ? "Bank Transfer (VietQR)" : "MoMo"}
+            {order.paymentMethod === "vietqr" ? t("order.bankTransfer") : t("order.momo")}
           </span>
         </div>
       </div>
 
       {/* Items */}
       <div className="rounded-lg border p-4">
-        <h2 className="mb-3 font-medium text-gray-900">Items</h2>
+        <h2 className="mb-3 font-medium text-gray-900">{t("order.itemsTitle")}</h2>
         {order.items.map((item, i) => (
           <div
             key={i}
@@ -96,23 +100,23 @@ export default function OrderDetailPage() {
               {item.name} x {item.qty}
             </span>
             <span className="text-sm font-medium">
-              {formatPrice(item.price * item.qty)}
+              {formatPrice(item.price * item.qty, fmtLocale)}
             </span>
           </div>
         ))}
         <div className="mt-3 space-y-1 border-t pt-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Subtotal</span>
-            <span>{formatPrice(order.subtotal)}</span>
+            <span className="text-gray-500">{t("order.subtotal")}</span>
+            <span>{formatPrice(order.subtotal, fmtLocale)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Shipping</span>
-            <span>{formatPrice(order.shippingFee)}</span>
+            <span className="text-gray-500">{t("order.shipping")}</span>
+            <span>{formatPrice(order.shippingFee, fmtLocale)}</span>
           </div>
           <div className="flex justify-between text-base font-bold">
-            <span>Total</span>
+            <span>{t("order.total")}</span>
             <span className="text-amber-700">
-              {formatPrice(order.totalAmount)}
+              {formatPrice(order.totalAmount, fmtLocale)}
             </span>
           </div>
         </div>
@@ -120,7 +124,7 @@ export default function OrderDetailPage() {
 
       {/* Shipping address */}
       <div className="mt-4 rounded-lg border p-4">
-        <h2 className="mb-2 font-medium text-gray-900">Shipping Address</h2>
+        <h2 className="mb-2 font-medium text-gray-900">{t("order.shippingAddress")}</h2>
         <p className="text-sm text-gray-600">
           {order.shippingAddress.name} - {order.shippingAddress.phone}
         </p>

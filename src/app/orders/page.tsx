@@ -12,9 +12,11 @@ import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/lib/firebase/auth-context";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { Button } from "@/components/ui/Button";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Order } from "@/lib/types";
 
 export default function OrdersPage() {
+  const { t } = useLocale();
   const { user, loading: authLoading, signIn } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,9 +62,9 @@ export default function OrdersPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">Sign in to view orders</h1>
+        <h1 className="text-xl font-bold text-gray-900">{t("orders.signInRequired")}</h1>
         <Button className="mt-4" onClick={signIn}>
-          Sign In with Google
+          {t("nav.signIn")}
         </Button>
       </div>
     );
@@ -70,7 +72,7 @@ export default function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">My Orders</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("orders.title")}</h1>
 
       {loading ? (
         <div className="space-y-3">
@@ -79,7 +81,7 @@ export default function OrdersPage() {
           ))}
         </div>
       ) : orders.length === 0 ? (
-        <p className="py-12 text-center text-gray-500">No orders yet.</p>
+        <p className="py-12 text-center text-gray-500">{t("orders.noOrders")}</p>
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (

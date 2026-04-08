@@ -1,3 +1,7 @@
+"use client";
+
+import { useLocale } from "@/lib/i18n/locale-context";
+
 interface TopProduct {
   name: string;
   sold: number;
@@ -8,11 +12,12 @@ interface TopProductsProps {
 }
 
 export function TopProducts({ products }: TopProductsProps) {
+  const { t } = useLocale();
   const maxSold = Math.max(...products.map((p) => p.sold), 1);
 
   return (
     <div className="rounded-lg border bg-white p-4">
-      <h3 className="mb-3 font-medium text-gray-900">Top Selling</h3>
+      <h3 className="mb-3 font-medium text-gray-900">{t("admin.topSelling")}</h3>
       <div className="space-y-3">
         {products.map((p) => (
           <div key={p.name} className="flex items-center justify-between">

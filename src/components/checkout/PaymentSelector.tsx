@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { PaymentMethod } from "@/lib/types";
 
 interface PaymentSelectorProps {
@@ -11,22 +12,23 @@ export function PaymentSelector({
   selected,
   onSelect,
 }: PaymentSelectorProps) {
+  const { t } = useLocale();
   const options: { value: PaymentMethod; label: string; desc: string }[] = [
     {
       value: "vietqr",
-      label: "Bank Transfer (VietQR)",
-      desc: "Scan QR code with your banking app to pay",
+      label: t("payment.vietqr.label"),
+      desc: t("payment.vietqr.desc"),
     },
     {
       value: "momo",
-      label: "MoMo",
-      desc: "Redirect to MoMo to complete payment",
+      label: t("payment.momo.label"),
+      desc: t("payment.momo.desc"),
     },
   ];
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-medium text-gray-900">Payment Method</h2>
+      <h2 className="text-lg font-medium text-gray-900">{t("payment.title")}</h2>
       {options.map((opt) => (
         <label
           key={opt.value}

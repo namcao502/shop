@@ -6,6 +6,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
 import { Button } from "@/components/ui/Button";
 import type { Product } from "@/lib/types";
 
@@ -13,6 +14,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addItem } = useCart();
+  const { locale, t } = useLocale();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -53,9 +55,9 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">Product not found</h1>
+        <h1 className="text-xl font-bold text-gray-900">{t("product.notFound")}</h1>
         <Button className="mt-4" onClick={() => router.push("/products")}>
-          Back to Products
+          {t("product.backToProducts")}
         </Button>
       </div>
     );
@@ -109,12 +111,12 @@ export default function ProductDetailPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
           <p className="mt-2 text-3xl font-bold text-amber-700">
-            {formatPrice(product.price)}
+            {formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}
           </p>
           <p className="mt-4 text-gray-600">{product.description}</p>
 
           {outOfStock ? (
-            <p className="mt-6 text-lg font-medium text-red-600">Out of Stock</p>
+            <p className="mt-6 text-lg font-medium text-red-600">{t("product.outOfStock")}</p>
           ) : (
             <div className="mt-6 flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -133,13 +135,13 @@ export default function ProductDetailPage() {
                 </button>
               </div>
               <Button onClick={handleAddToCart}>
-                {added ? "Added!" : "Add to Cart"}
+                {added ? t("product.added") : t("product.addToCart")}
               </Button>
             </div>
           )}
 
           <p className="mt-4 text-sm text-gray-500">
-            {product.stock > 0 ? `${product.stock} in stock` : ""}
+            {product.stock > 0 ? `${product.stock} ${t("product.inStock")}` : ""}
           </p>
         </div>
       </div>

@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { formatPrice } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Product } from "@/lib/types";
 
 interface ProductCardProps {
@@ -7,6 +10,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { locale, t } = useLocale();
   const thumbnail = product.images[0] ?? "/placeholder.png";
   const outOfStock = product.stock <= 0;
 
@@ -24,7 +28,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {outOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
             <span className="rounded bg-white px-3 py-1 text-sm font-medium text-gray-900">
-              Out of Stock
+              {t("product.outOfStock")}
             </span>
           </div>
         )}
@@ -32,7 +36,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="p-4">
         <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
         <p className="mt-1 text-lg font-semibold text-amber-700">
-          {formatPrice(product.price)}
+          {formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}
         </p>
       </div>
     </Link>

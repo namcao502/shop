@@ -16,9 +16,11 @@ import { ProductForm } from "@/components/admin/ProductForm";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Product, Category } from "@/lib/types";
 
 export default function AdminProductsPage() {
+  const { locale, t } = useLocale();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this product?")) return;
+    if (!confirm(t("admin.deleteConfirm"))) return;
     await deleteDoc(doc(db, "products", id));
     await fetchData();
   };
@@ -74,7 +76,7 @@ export default function AdminProductsPage() {
     return (
       <div>
         <h1 className="mb-4 text-2xl font-bold text-gray-900">
-          {editing ? "Edit Product" : "New Product"}
+          {editing ? t("admin.editProduct") : t("admin.newProduct")}
         </h1>
         <ProductForm
           product={editing ?? undefined}
@@ -92,26 +94,26 @@ export default function AdminProductsPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <Button onClick={() => setCreating(true)}>Add Product</Button>
+        <h1 className="text-2xl font-bold text-gray-900">{t("admin.products")}</h1>
+        <Button onClick={() => setCreating(true)}>{t("admin.addProduct")}</Button>
       </div>
 
       <div className="rounded-lg border bg-white">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs uppercase text-gray-500">
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Price</th>
-              <th className="px-4 py-2">Stock</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Actions</th>
+              <th className="px-4 py-2">{t("admin.colName")}</th>
+              <th className="px-4 py-2">{t("admin.colPrice")}</th>
+              <th className="px-4 py-2">{t("admin.colStock")}</th>
+              <th className="px-4 py-2">{t("admin.colStatus")}</th>
+              <th className="px-4 py-2">{t("admin.colActions")}</th>
             </tr>
           </thead>
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className="border-b last:border-0">
                 <td className="px-4 py-2 font-medium">{product.name}</td>
-                <td className="px-4 py-2">{formatPrice(product.price)}</td>
+                <td className="px-4 py-2">{formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}</td>
                 <td className="px-4 py-2">
                   <span className={product.stock < 5 ? "font-bold text-red-600" : ""}>
                     {product.stock}
@@ -119,9 +121,9 @@ export default function AdminProductsPage() {
                 </td>
                 <td className="px-4 py-2">
                   {product.isPublished ? (
-                    <Badge variant="confirmed">Published</Badge>
+                    <Badge variant="confirmed">{t("admin.published")}</Badge>
                   ) : (
-                    <Badge variant="cancelled">Draft</Badge>
+                    <Badge variant="cancelled">{t("admin.draft")}</Badge>
                   )}
                 </td>
                 <td className="px-4 py-2">
@@ -131,14 +133,14 @@ export default function AdminProductsPage() {
                       size="sm"
                       onClick={() => setEditing(product)}
                     >
-                      Edit
+                      {t("admin.edit")}
                     </Button>
                     <Button
                       variant="danger"
                       size="sm"
                       onClick={() => handleDelete(product.id)}
                     >
-                      Delete
+                      {t("admin.delete")}
                     </Button>
                   </div>
                 </td>

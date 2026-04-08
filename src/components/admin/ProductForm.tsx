@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Product, Category } from "@/lib/types";
 
 interface ProductFormProps {
@@ -28,6 +29,7 @@ export function ProductForm({
   const [images, setImages] = useState<string[]>(product?.images ?? []);
   const [newImageUrl, setNewImageUrl] = useState("");
   const [saving, setSaving] = useState(false);
+  const { t } = useLocale();
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -71,18 +73,18 @@ export function ProductForm({
     <div className="space-y-4 rounded-lg border bg-white p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
-          label="Product Name"
+          label={t("form.productName")}
           value={name}
           onChange={(e) => handleNameChange(e.target.value)}
         />
         <Input
-          label="Slug"
+          label={t("form.slug")}
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
         />
       </div>
       <div>
-        <label className="text-sm font-medium text-gray-700">Description</label>
+        <label className="text-sm font-medium text-gray-700">{t("form.description")}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -92,25 +94,25 @@ export function ProductForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <Input
-          label="Price (VND)"
+          label={t("form.price")}
           type="number"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
         />
         <Input
-          label="Stock"
+          label={t("form.stock")}
           type="number"
           value={stock}
           onChange={(e) => setStock(e.target.value)}
         />
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Category</label>
+          <label className="text-sm font-medium text-gray-700">{t("form.category")}</label>
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none"
           >
-            <option value="">Select category</option>
+            <option value="">{t("form.selectCategory")}</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
@@ -122,7 +124,7 @@ export function ProductForm({
 
       <div>
         <label className="text-sm font-medium text-gray-700">
-          Images (first is thumbnail)
+          {t("form.images")}
         </label>
         <div className="mt-2 flex flex-wrap gap-2">
           {images.map((img, i) => (
@@ -141,11 +143,11 @@ export function ProductForm({
           <input
             value={newImageUrl}
             onChange={(e) => setNewImageUrl(e.target.value)}
-            placeholder="Image URL"
+            placeholder={t("form.imageUrl")}
             className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
           <Button variant="secondary" size="sm" onClick={addImage}>
-            Add
+            {t("form.add")}
           </Button>
         </div>
       </div>
@@ -157,15 +159,15 @@ export function ProductForm({
           onChange={(e) => setIsPublished(e.target.checked)}
           className="accent-amber-600"
         />
-        <span className="text-sm text-gray-700">Published</span>
+        <span className="text-sm text-gray-700">{t("form.published")}</span>
       </label>
 
       <div className="flex gap-3">
         <Button onClick={handleSubmit} disabled={saving}>
-          {saving ? "Saving..." : product ? "Update" : "Create"}
+          {saving ? t("form.saving") : product ? t("form.update") : t("form.create")}
         </Button>
         <Button variant="ghost" onClick={onCancel}>
-          Cancel
+          {t("form.cancel")}
         </Button>
       </div>
     </div>

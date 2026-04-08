@@ -11,13 +11,15 @@ import { PaymentSelector } from "@/components/checkout/PaymentSelector";
 import { QRDisplay } from "@/components/checkout/QRDisplay";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { ShippingAddress, PaymentMethod } from "@/lib/types";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { locale, t } = useLocale();
   const { user, loading: authLoading, signIn, getIdToken } = useAuth();
   const { items, subtotal, updateQty, clear } = useCart();
-  const [stockWarnings, setStockWarnings] = useState<string[]>([]);
+  const [stockAdjusted, setStockAdjusted] = useState(false);
 
   const [address, setAddress] = useState<ShippingAddress>({
     name: "",
@@ -39,24 +41,17 @@ export default function CheckoutPage() {
   // Validate cart quantities against current stock on page load
   useEffect(() => {
     async function validateStock() {
-      const warnings: string[] = [];
+      let anyAdjusted = false;
       for (const item of items) {
         const snap = await getDoc(doc(db, "products", item.productId));
         if (!snap.exists()) continue;
         const stock = snap.data().stock ?? 0;
         if (item.qty > stock) {
-          const adjusted = Math.max(stock, 0);
-          if (adjusted === 0) {
-            warnings.push(`${item.name} is out of stock and was removed.`);
-          } else {
-            warnings.push(
-              `${item.name} quantity adjusted from ${item.qty} to ${adjusted} (only ${stock} in stock).`
-            );
-          }
-          updateQty(item.productId, adjusted);
+          anyAdjusted = true;
+          updateQty(item.productId, Math.max(stock, 0));
         }
       }
-      setStockWarnings(warnings);
+      setStockAdjusted(anyAdjusted);
     }
     if (items.length > 0) {
       validateStock();
@@ -77,13 +72,13 @@ export default function CheckoutPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
         <h1 className="text-xl font-bold text-gray-900">
-          Sign in to continue
+          {t("checkout.signInRequired")}
         </h1>
         <p className="mt-2 text-gray-500">
-          You need to sign in with Google to place an order.
+          {t("checkout.signInMessage")}
         </p>
         <Button className="mt-4" onClick={signIn}>
-          Sign In with Google
+          {t("nav.signIn")}
         </Button>
       </div>
     );
@@ -92,9 +87,9 @@ export default function CheckoutPage() {
   if (items.length === 0 && !qrData) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">Cart is empty</h1>
+        <h1 className="text-xl font-bold text-gray-900">{t("checkout.cartEmpty")}</h1>
         <Button className="mt-4" onClick={() => router.push("/products")}>
-          Browse Products
+          {t("checkout.browseProducts")}
         </Button>
       </div>
     );
@@ -104,7 +99,7 @@ export default function CheckoutPage() {
 
   const handleSubmit = async () => {
     if (!isAddressComplete) {
-      setError("Please fill in all address fields.");
+      setError(t("checkout.fillAllFields"));
       return;
     }
 
@@ -169,7 +164,7 @@ export default function CheckoutPage() {
         window.location.href = payUrl;
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("checkout.somethingWentWrong"));
     } finally {
       setSubmitting(false);
     }
@@ -189,7 +184,7 @@ export default function CheckoutPage() {
           className="mt-4 w-full"
           onClick={() => router.push("/orders")}
         >
-          View My Orders
+          {t("checkout.viewMyOrders")}
         </Button>
       </div>
     );
@@ -197,24 +192,17 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">Checkout</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("checkout.title")}</h1>
 
       <div className="space-y-8">
         {/* Stock warnings */}
-        {stockWarnings.length > 0 && (
-          <div className="rounded-lg bg-yellow-50 p-4">
-            <p className="text-sm font-medium text-yellow-800">Stock adjusted:</p>
-            <ul className="mt-1 list-disc pl-5 text-sm text-yellow-700">
-              {stockWarnings.map((w, i) => (
-                <li key={i}>{w}</li>
-              ))}
-            </ul>
-          </div>
+        {stockAdjusted && (
+          <p className="text-sm text-amber-600">{t("checkout.stockAdjusted")}</p>
         )}
 
         {/* Order summary */}
         <div className="rounded-lg border bg-gray-50 p-4">
-          <h2 className="text-lg font-medium text-gray-900">Order Summary</h2>
+          <h2 className="text-lg font-medium text-gray-900">{t("checkout.orderSummary")}</h2>
           {items.map((item) => (
             <div
               key={item.productId}
@@ -223,11 +211,11 @@ export default function CheckoutPage() {
               <span className="text-gray-600">
                 {item.name} x {item.qty}
               </span>
-              <span>{formatPrice(item.price * item.qty)}</span>
+              <span>{formatPrice(item.price * item.qty, locale === "vi" ? "vi-VN" : "en-US")}</span>
             </div>
           ))}
           <div className="mt-3 border-t pt-3 text-right text-lg font-bold text-amber-700">
-            {formatPrice(subtotal)}
+            {formatPrice(subtotal, locale === "vi" ? "vi-VN" : "en-US")}
           </div>
         </div>
 
@@ -246,7 +234,7 @@ export default function CheckoutPage() {
           onClick={handleSubmit}
           disabled={submitting}
         >
-          {submitting ? "Processing..." : "Place Order"}
+          {submitting ? t("checkout.processing") : t("checkout.placeOrder")}
         </Button>
       </div>
     </div>

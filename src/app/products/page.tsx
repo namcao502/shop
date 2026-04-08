@@ -5,9 +5,11 @@ import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { CategoryFilter } from "@/components/products/CategoryFilter";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Product, Category } from "@/lib/types";
 
 export default function ProductsPage() {
+  const { t } = useLocale();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -57,7 +59,7 @@ export default function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">All Products</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("products.title")}</h1>
       <div className="mb-6">
         <CategoryFilter
           categories={categories}

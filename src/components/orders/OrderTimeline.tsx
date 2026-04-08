@@ -1,21 +1,26 @@
+"use client";
+
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { OrderStatus } from "@/lib/types";
 
 interface OrderTimelineProps {
   currentStatus: OrderStatus;
 }
 
-const steps: { status: OrderStatus; label: string }[] = [
-  { status: "pending", label: "Order Placed" },
-  { status: "confirmed", label: "Confirmed" },
-  { status: "shipping", label: "Shipping" },
-  { status: "delivered", label: "Delivered" },
-];
-
 export function OrderTimeline({ currentStatus }: OrderTimelineProps) {
+  const { t } = useLocale();
+
+  const steps: { status: OrderStatus; label: string }[] = [
+    { status: "pending", label: t("timeline.orderPlaced") },
+    { status: "confirmed", label: t("timeline.confirmed") },
+    { status: "shipping", label: t("timeline.shipping") },
+    { status: "delivered", label: t("timeline.delivered") },
+  ];
+
   if (currentStatus === "cancelled") {
     return (
       <div className="rounded-lg bg-red-50 p-4 text-center">
-        <p className="font-medium text-red-700">Order Cancelled</p>
+        <p className="font-medium text-red-700">{t("timeline.cancelled")}</p>
       </div>
     );
   }

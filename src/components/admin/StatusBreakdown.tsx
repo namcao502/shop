@@ -1,16 +1,12 @@
+"use client";
+
+import { useLocale } from "@/lib/i18n/locale-context";
+import type { TranslationKey } from "@/lib/i18n/translations";
 import type { OrderStatus } from "@/lib/types";
 
 interface StatusBreakdownProps {
   counts: Record<OrderStatus, number>;
 }
-
-const labels: Record<OrderStatus, string> = {
-  pending: "Pending",
-  confirmed: "Confirmed",
-  shipping: "Shipping",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-};
 
 const colors: Record<OrderStatus, string> = {
   pending: "text-yellow-600",
@@ -20,17 +16,20 @@ const colors: Record<OrderStatus, string> = {
   cancelled: "text-gray-500",
 };
 
+const statusKeys: OrderStatus[] = ["pending", "confirmed", "shipping", "delivered", "cancelled"];
+
 export function StatusBreakdown({ counts }: StatusBreakdownProps) {
+  const { t } = useLocale();
+
   return (
     <div className="rounded-lg border bg-white p-4">
-      <h3 className="mb-3 font-medium text-gray-900">Order Status</h3>
+      <h3 className="mb-3 font-medium text-gray-900">{t("admin.orderStatus")}</h3>
       <div className="flex flex-wrap gap-3">
-        {(Object.keys(labels) as OrderStatus[]).map((status) => (
-          <div
-            key={status}
-            className="rounded-lg border px-3 py-2 text-sm"
-          >
-            <span className="text-gray-500">{labels[status]} </span>
+        {statusKeys.map((status) => (
+          <div key={status} className="rounded-lg border px-3 py-2 text-sm">
+            <span className="text-gray-500">
+              {t(`status.${status}` as TranslationKey)}{" "}
+            </span>
             <span className={`font-bold ${colors[status]}`}>
               {counts[status] ?? 0}
             </span>

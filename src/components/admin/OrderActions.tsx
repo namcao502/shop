@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Order, OrderStatus, PaymentStatus } from "@/lib/types";
 
 interface OrderActionsProps {
@@ -16,11 +17,12 @@ export function OrderActions({
   onUpdateStatus,
   onCancel,
 }: OrderActionsProps) {
+  const { t } = useLocale();
   return (
     <div className="flex flex-wrap gap-2">
       {order.paymentStatus === "pending" && (
         <Button size="sm" onClick={() => onUpdatePayment(order.id, "paid")}>
-          Confirm Payment
+          {t("admin.confirmPayment")}
         </Button>
       )}
       {order.orderStatus === "confirmed" && (
@@ -29,7 +31,7 @@ export function OrderActions({
           variant="secondary"
           onClick={() => onUpdateStatus(order.id, "shipping")}
         >
-          Mark Shipping
+          {t("admin.markShipping")}
         </Button>
       )}
       {order.orderStatus === "shipping" && (
@@ -38,7 +40,7 @@ export function OrderActions({
           variant="secondary"
           onClick={() => onUpdateStatus(order.id, "delivered")}
         >
-          Mark Delivered
+          {t("admin.markDelivered")}
         </Button>
       )}
       {order.orderStatus !== "cancelled" &&
@@ -48,7 +50,7 @@ export function OrderActions({
             variant="danger"
             onClick={() => onCancel(order.id)}
           >
-            Cancel
+            {t("admin.cancel")}
           </Button>
         )}
     </div>

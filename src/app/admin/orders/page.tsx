@@ -15,9 +15,12 @@ import { db } from "@/lib/firebase/config";
 import { Badge } from "@/components/ui/Badge";
 import { OrderActions } from "@/components/admin/OrderActions";
 import { formatPrice, formatDate } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
+import type { TranslationKey } from "@/lib/i18n/translations";
 import type { Order, OrderStatus, PaymentStatus } from "@/lib/types";
 
 export default function AdminOrdersPage() {
+  const { locale, t } = useLocale();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +64,7 @@ export default function AdminOrdersPage() {
   };
 
   const handleCancel = async (orderId: string) => {
-    if (!confirm("Cancel this order and restore stock?")) return;
+    if (!confirm(t("admin.cancelConfirm"))) return;
 
     await runTransaction(db, async (tx) => {
       const orderRef = doc(db, "orders", orderId);
@@ -98,7 +101,7 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold text-gray-900">Orders</h1>
+      <h1 className="mb-4 text-2xl font-bold text-gray-900">{t("admin.orders")}</h1>
 
       <div className="space-y-3">
         {orders.map((order) => (
@@ -109,17 +112,17 @@ export default function AdminOrdersPage() {
                   {order.orderCode}
                 </span>
                 <span className="ml-3 text-sm text-gray-500">
-                  {formatDate(order.createdAt)}
+                  {formatDate(order.createdAt, locale === "vi" ? "vi-VN" : "en-US")}
                 </span>
               </div>
               <span className="text-lg font-bold text-amber-700">
-                {formatPrice(order.totalAmount)}
+                {formatPrice(order.totalAmount, locale === "vi" ? "vi-VN" : "en-US")}
               </span>
             </div>
 
             <div className="mt-2 flex gap-2">
-              <Badge variant={order.paymentStatus}>{order.paymentStatus}</Badge>
-              <Badge variant={order.orderStatus}>{order.orderStatus}</Badge>
+              <Badge variant={order.paymentStatus}>{t(`status.${order.paymentStatus}` as TranslationKey)}</Badge>
+              <Badge variant={order.orderStatus}>{t(`status.${order.orderStatus}` as TranslationKey)}</Badge>
               <span className="text-xs text-gray-500">
                 {order.paymentMethod === "vietqr" ? "VietQR" : "MoMo"}
               </span>
@@ -135,7 +138,7 @@ export default function AdminOrdersPage() {
             </div>
 
             <div className="mt-2 text-xs text-gray-500">
-              Ship to: {order.shippingAddress.name},{" "}
+              {t("admin.shipTo")} {order.shippingAddress.name},{" "}
               {order.shippingAddress.district}, {order.shippingAddress.city}
             </div>
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { formatPrice } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { CartItem as CartItemType } from "@/lib/types";
 
 interface CartItemProps {
@@ -11,6 +12,7 @@ interface CartItemProps {
 }
 
 export function CartItem({ item, onUpdateQty, onRemove }: CartItemProps) {
+  const { locale, t } = useLocale();
   return (
     <div className="flex items-center gap-4 border-b py-4">
       <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded bg-gray-100">
@@ -27,7 +29,7 @@ export function CartItem({ item, onUpdateQty, onRemove }: CartItemProps) {
         >
           {item.name}
         </Link>
-        <p className="text-sm text-amber-700">{formatPrice(item.price)}</p>
+        <p className="text-sm text-amber-700">{formatPrice(item.price, locale === "vi" ? "vi-VN" : "en-US")}</p>
       </div>
       <div className="flex items-center gap-2">
         <button
@@ -45,13 +47,13 @@ export function CartItem({ item, onUpdateQty, onRemove }: CartItemProps) {
         </button>
       </div>
       <p className="w-28 text-right font-medium">
-        {formatPrice(item.price * item.qty)}
+        {formatPrice(item.price * item.qty, locale === "vi" ? "vi-VN" : "en-US")}
       </p>
       <button
         onClick={() => onRemove(item.productId)}
         className="text-sm text-red-600 hover:underline"
       >
-        Remove
+        {t("cart.remove")}
       </button>
     </div>
   );

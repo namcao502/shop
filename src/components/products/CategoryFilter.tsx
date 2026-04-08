@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Category } from "@/lib/types";
 
 interface CategoryFilterProps {
@@ -13,6 +14,7 @@ export function CategoryFilter({
   selected,
   onSelect,
 }: CategoryFilterProps) {
+  const { t } = useLocale();
   return (
     <div className="flex flex-wrap gap-2">
       <button
@@ -23,7 +25,7 @@ export function CategoryFilter({
             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
         }`}
       >
-        All
+        {t("products.all")}
       </button>
       {categories.map((cat) => (
         <button
