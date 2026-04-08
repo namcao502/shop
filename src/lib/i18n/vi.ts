@@ -12,6 +12,7 @@ export const vi: Record<TranslationKey, string> = {
   "footer.copyright": "Bảo lưu mọi quyền.",
   "home.hero.title": "Quà lưu niệm Việt Nam",
   "home.hero.subtitle": "Quà thủ công độc đáo, giao hàng từ Việt Nam",
+  "home.hero.freeShipping": "Miễn phí vận chuyển cho đơn hàng trên 500.000₫",
   "home.browseAll": "Xem tất cả sản phẩm",
   "home.featured": "Sản phẩm nổi bật",
   "products.title": "Tất cả sản phẩm",

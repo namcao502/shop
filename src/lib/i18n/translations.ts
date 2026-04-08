@@ -16,6 +16,7 @@ export type TranslationKey =
   // home
   | "home.hero.title"
   | "home.hero.subtitle"
+  | "home.hero.freeShipping"
   | "home.browseAll"
   | "home.featured"
   // products list

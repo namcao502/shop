@@ -16,13 +16,13 @@ export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
   const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
 
   return (
-    <div className="rounded-lg border bg-white">
-      <div className="border-b px-4 py-3">
-        <h3 className="font-medium text-gray-900">{t("admin.recentOrders")}</h3>
+    <div className="rounded-xl bg-white shadow-sm">
+      <div className="border-b border-stone-100 px-4 py-3">
+        <h3 className="font-medium text-stone-900">{t("admin.recentOrders")}</h3>
       </div>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b text-left text-xs uppercase text-gray-500">
+          <tr className="border-b text-left text-xs uppercase text-stone-500">
             <th className="px-4 py-2">{t("admin.colOrder")}</th>
             <th className="px-4 py-2">{t("admin.colAmount")}</th>
             <th className="px-4 py-2">{t("admin.colPayment")}</th>
@@ -52,7 +52,7 @@ export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                   {t(`status.${order.orderStatus}` as TranslationKey)}
                 </Badge>
               </td>
-              <td className="px-4 py-2 text-gray-500">
+              <td className="px-4 py-2 text-stone-400">
                 {formatDate(order.createdAt, fmtLocale)}
               </td>
             </tr>

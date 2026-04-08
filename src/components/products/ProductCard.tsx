@@ -17,9 +17,9 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group overflow-hidden rounded-lg border bg-white transition-shadow hover:shadow-md"
+      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
     >
-      <div className="relative aspect-square overflow-hidden bg-gray-100">
+      <div className="relative aspect-square overflow-hidden bg-stone-100">
         <img
           src={thumbnail}
           alt={product.name}
@@ -27,15 +27,15 @@ export function ProductCard({ product }: ProductCardProps) {
         />
         {outOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-            <span className="rounded bg-white px-3 py-1 text-sm font-medium text-gray-900">
+            <span className="rounded bg-white px-3 py-1 text-sm font-medium text-stone-900">
               {t("product.outOfStock")}
             </span>
           </div>
         )}
       </div>
       <div className="p-4">
-        <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
-        <p className="mt-1 text-lg font-semibold text-amber-700">
+        <h3 className="text-sm font-medium text-stone-900">{product.name}</h3>
+        <p className="mt-1 text-lg font-bold text-amber-600">
           {formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}
         </p>
       </div>

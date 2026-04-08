@@ -39,7 +39,7 @@ export default function AdminDashboardPage() {
   }, []);
 
   if (loading) {
-    return <div className="animate-pulse space-y-4"><div className="h-32 rounded bg-gray-200" /></div>;
+    return <div className="animate-pulse space-y-4"><div className="h-32 rounded bg-stone-200" /></div>;
   }
 
   const now = new Date();
@@ -85,26 +85,33 @@ export default function AdminDashboardPage() {
 
   const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
   const kpis = [
-    { label: t("admin.revenueToday"), value: formatPrice(todayRevenue, fmtLocale) },
+    { label: t("admin.revenueToday"), value: formatPrice(todayRevenue, fmtLocale), accent: "primary" as const },
     {
       label: t("admin.ordersToday"),
       value: String(todayOrders.length),
       sub: `${todayOrders.filter((o) => o.paymentStatus === "pending").length} ${t("admin.pendingLabel")}`,
+      accent: "neutral" as const,
     },
     {
       label: t("admin.revenueMonth"),
       value: formatPrice(monthRevenue, fmtLocale),
       sub: `${paidOrders.filter((o) => o.createdAt >= monthStart).length} ${t("admin.ordersLabel")}`,
+      accent: "neutral" as const,
     },
     {
       label: t("admin.pendingPayment"),
       value: String(orders.filter((o) => o.paymentStatus === "pending").length),
+      accent: "warning" as const,
     },
   ];
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">{t("admin.dashboard")}</h1>
+      <div className="border-b border-stone-100/90 pb-4">
+        <h1 className="text-2xl font-extrabold tracking-tight text-stone-900">
+          {t("admin.dashboard")}
+        </h1>
+      </div>
       <KPICards kpis={kpis} />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

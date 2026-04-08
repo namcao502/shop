@@ -12,6 +12,7 @@ export const en: Record<TranslationKey, string> = {
   "footer.copyright": "All rights reserved.",
   "home.hero.title": "Vietnamese Souvenirs",
   "home.hero.subtitle": "Unique handcrafted gifts shipped from Vietnam",
+  "home.hero.freeShipping": "Free shipping on orders over ₫500,000",
   "home.browseAll": "Browse All Products",
   "home.featured": "Featured Products",
   "products.title": "All Products",

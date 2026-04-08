@@ -14,25 +14,26 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="border-b bg-white">
+    <header className="sticky top-0 z-50 border-b border-stone-100/80 bg-white/90 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <Link href="/" className="text-xl font-bold text-amber-700">
+          <Link href="/" className="text-xl font-bold text-stone-900 transition-colors hover:text-amber-700">
             {t("site.name")}
           </Link>
           <button
             onClick={() => setLocale(locale === "vi" ? "en" : "vi")}
-            className="rounded border px-2 py-1 text-xs font-bold text-gray-600 hover:bg-gray-50"
+            className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100"
+            aria-label={locale === "vi" ? "Switch to English" : "Chuyển sang Tiếng Việt"}
           >
             {locale === "vi" ? "EN" : "VI"}
           </button>
         </div>
 
         <nav className="hidden items-center gap-6 md:flex">
-          <Link href="/products" className="text-sm text-gray-600 hover:text-gray-900">
+          <Link href="/products" className="text-sm text-stone-600 hover:text-stone-900">
             {t("nav.products")}
           </Link>
-          <Link href="/cart" className="relative text-sm text-gray-600 hover:text-gray-900">
+          <Link href="/cart" className="relative text-sm text-stone-600 hover:text-stone-900">
             {t("nav.cart")}
             {totalItems > 0 && (
               <span className="absolute -right-4 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-600 text-xs text-white">
@@ -42,7 +43,7 @@ export function Header() {
           </Link>
 
           {loading ? (
-            <div className="h-8 w-20 animate-pulse rounded bg-gray-200" />
+            <div className="h-8 w-20 animate-pulse rounded bg-stone-200" />
           ) : user ? (
             <div className="relative">
               <button
@@ -62,7 +63,7 @@ export function Header() {
                 <div className="absolute right-0 top-10 w-48 rounded-lg border bg-white py-1 shadow-lg">
                   <Link
                     href="/orders"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50"
                     onClick={() => setMenuOpen(false)}
                   >
                     {t("nav.myOrders")}
@@ -70,7 +71,7 @@ export function Header() {
                   {user.isAdmin && (
                     <Link
                       href="/admin"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50"
                       onClick={() => setMenuOpen(false)}
                     >
                       {t("nav.adminPanel")}
@@ -81,7 +82,7 @@ export function Header() {
                       signOut();
                       setMenuOpen(false);
                     }}
-                    className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    className="block w-full px-4 py-2 text-left text-sm text-stone-700 hover:bg-stone-50"
                   >
                     {t("nav.signOut")}
                   </button>
@@ -89,7 +90,7 @@ export function Header() {
               )}
             </div>
           ) : (
-            <Button size="sm" onClick={signIn}>
+            <Button size="sm" onClick={signIn} className="shadow-md">
               {t("nav.signIn")}
             </Button>
           )}

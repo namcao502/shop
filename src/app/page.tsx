@@ -32,36 +32,47 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-amber-50 py-16">
+      <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 text-center">
-          <h1 className="text-4xl font-bold text-gray-900">
+          <h1 className="text-5xl font-extrabold tracking-tight text-stone-900">
             {t("home.hero.title")}
           </h1>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-stone-500">
             {t("home.hero.subtitle")}
           </p>
           <Link href="/products">
-            <Button size="lg" className="mt-6">
+            <Button
+              size="lg"
+              className="mt-6 shadow-[0_4px_14px_rgba(217,119,6,0.4)]"
+            >
               {t("home.browseAll")}
             </Button>
           </Link>
+          <p className="mt-3 text-sm text-stone-400">
+            {t("home.hero.freeShipping")}
+          </p>
         </div>
       </section>
 
       {/* Featured Products */}
       <section className="mx-auto max-w-7xl px-4 py-12">
-        <h2 className="mb-6 text-xl font-bold text-gray-900">
-          {t("home.featured")}
-        </h2>
-        {loading ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="aspect-square animate-pulse rounded bg-gray-200" />
-            ))}
+        <div className="rounded-2xl border border-white/80 bg-white/55 p-5 shadow-sm backdrop-blur-md">
+          <div className="mb-6">
+            <h2 className="text-2xl font-extrabold tracking-tight text-stone-900">
+              {t("home.featured")}
+            </h2>
+            <div className="mt-1 h-0.5 w-7 rounded bg-amber-500" />
           </div>
-        ) : (
-          <ProductGrid products={featured} />
-        )}
+          {loading ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="aspect-square animate-pulse rounded bg-stone-200" />
+              ))}
+            </div>
+          ) : (
+            <ProductGrid products={featured} />
+          )}
+        </div>
       </section>
     </div>
   );
