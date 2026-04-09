@@ -1,39 +1,132 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { useAuth } from "@/lib/firebase/auth-context";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
+import { ShippingForm } from "@/components/checkout/ShippingForm";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
 import type { TranslationKey } from "@/lib/i18n/translations";
-import type { Order } from "@/lib/types";
+import type { Order, ShippingAddress } from "@/lib/types";
 
 export default function OrderDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const { locale, t } = useLocale();
+  const { getIdToken } = useAuth();
   const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
+
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [addressFormOpen, setAddressFormOpen] = useState(false);
+  const [draftAddress, setDraftAddress] = useState<ShippingAddress | null>(null);
+
+  async function fetchOrder() {
+    const snap = await getDoc(doc(db, "orders", params.id as string));
+    if (snap.exists()) {
+      const data = snap.data();
+      setOrder({
+        id: snap.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() ?? new Date(),
+        updatedAt: data.updatedAt?.toDate() ?? new Date(),
+      } as Order);
+    }
+    setLoading(false);
+  }
 
   useEffect(() => {
-    async function fetchOrder() {
-      const snap = await getDoc(doc(db, "orders", params.id as string));
-      if (snap.exists()) {
-        const data = snap.data();
-        setOrder({
-          id: snap.id,
-          ...data,
-          createdAt: data.createdAt?.toDate() ?? new Date(),
-          updatedAt: data.updatedAt?.toDate() ?? new Date(),
-        } as Order);
-      }
-      setLoading(false);
-    }
     fetchOrder();
   }, [params.id]);
+
+  async function authHeader(): Promise<string> {
+    const token = await getIdToken();
+    return `Bearer ${token}`;
+  }
+
+  async function handleCancel() {
+    if (!order) return;
+    if (!window.confirm(t("order.cancelConfirm"))) return;
+    setSaving(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/orders/${order.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: await authHeader(),
+        },
+        body: JSON.stringify({ action: "cancel" }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setActionError(data.error ?? "Something went wrong");
+      } else {
+        await fetchOrder();
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSaveAddress() {
+    if (!order || !draftAddress) return;
+    setSaving(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/orders/${order.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: await authHeader(),
+        },
+        body: JSON.stringify({ action: "update_address", shippingAddress: draftAddress }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setActionError(data.error ?? "Something went wrong");
+      } else {
+        setAddressFormOpen(false);
+        setDraftAddress(null);
+        await fetchOrder();
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!order) return;
+    if (!window.confirm(t("order.deleteConfirm"))) return;
+    setSaving(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/orders/${order.id}`, {
+        method: "DELETE",
+        headers: { Authorization: await authHeader() },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setActionError(data.error ?? "Something went wrong");
+      } else {
+        router.push("/orders");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function openAddressForm() {
+    if (!order) return;
+    setDraftAddress({ ...order.shippingAddress });
+    setAddressFormOpen(true);
+  }
 
   if (loading) {
     return (
@@ -53,6 +146,10 @@ export default function OrderDetailPage() {
       </div>
     );
   }
+
+  const showCancel = order.orderStatus === "pending";
+  const showUpdateAddress = order.orderStatus === "pending" || order.orderStatus === "confirmed";
+  const showDelete = order.orderStatus === "cancelled";
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -87,6 +184,71 @@ export default function OrderDetailPage() {
           </span>
         </div>
       </div>
+
+      {/* Action bar */}
+      {(showCancel || showUpdateAddress || showDelete) && (
+        <div className="mb-6 rounded-lg border p-4">
+          <div className="flex flex-wrap gap-2">
+            {showCancel && (
+              <button
+                onClick={handleCancel}
+                disabled={saving}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {t("order.cancelOrder")}
+              </button>
+            )}
+            {showUpdateAddress && !addressFormOpen && (
+              <button
+                onClick={openAddressForm}
+                disabled={saving}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {t("order.updateAddress")}
+              </button>
+            )}
+            {showDelete && (
+              <button
+                onClick={handleDelete}
+                disabled={saving}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {t("order.deleteOrder")}
+              </button>
+            )}
+          </div>
+
+          {actionError && (
+            <p className="mt-2 text-sm text-red-600">{actionError}</p>
+          )}
+
+          {/* Inline address edit form */}
+          {addressFormOpen && draftAddress && (
+            <div className="mt-4 border-t pt-4">
+              <ShippingForm
+                address={draftAddress}
+                onChange={(addr) => setDraftAddress(addr)}
+              />
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={handleSaveAddress}
+                  disabled={saving}
+                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                >
+                  {saving ? "..." : t("order.save")}
+                </button>
+                <button
+                  onClick={() => { setAddressFormOpen(false); setDraftAddress(null); setActionError(null); }}
+                  disabled={saving}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {t("form.cancel")}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Items */}
       <div className="rounded-lg border p-4">
@@ -129,10 +291,10 @@ export default function OrderDetailPage() {
           {order.shippingAddress.name} - {order.shippingAddress.phone}
         </p>
         <p className="text-sm text-gray-600">
-          {order.shippingAddress.address}, {order.shippingAddress.district}
+          {order.shippingAddress.address}, {order.shippingAddress.ward}
         </p>
         <p className="text-sm text-gray-600">
-          {order.shippingAddress.city}, {order.shippingAddress.province}
+          {order.shippingAddress.province}
         </p>
       </div>
     </div>
