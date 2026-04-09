@@ -20,7 +20,18 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const body: PatchBody = await request.json();
+
+  let body: PatchBody;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  if (!body.action || !["cancel", "update_address"].includes(body.action)) {
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  }
+
   const orderRef = adminDb.collection("orders").doc(id);
   const orderSnap = await orderRef.get();
 
@@ -54,7 +65,9 @@ export async function PATCH(
         const productRefs = freshItems.map((item: { productId: string }) =>
           adminDb.collection("products").doc(item.productId)
         );
-        const productSnaps = await Promise.all(productRefs.map((ref: FirebaseFirestore.DocumentReference) => tx.get(ref)));
+        const productSnaps = await Promise.all(
+          productRefs.map((ref: FirebaseFirestore.DocumentReference) => tx.get(ref))
+        );
 
         for (let i = 0; i < freshItems.length; i++) {
           if (productSnaps[i].exists) {
@@ -91,10 +104,24 @@ export async function PATCH(
       );
     }
 
-    await orderRef.update({
-      shippingAddress: validation.data,
-      updatedAt: FieldValue.serverTimestamp(),
-    });
+    try {
+      await adminDb.runTransaction(async (tx) => {
+        const freshSnap = await tx.get(orderRef);
+        if (!freshSnap.exists) {
+          throw new Error("Order not found");
+        }
+        if (!["pending", "confirmed"].includes(freshSnap.data()!.orderStatus)) {
+          throw new Error("Address can only be updated for pending or confirmed orders");
+        }
+        tx.update(orderRef, {
+          shippingAddress: validation.data,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to update address";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
 
     return NextResponse.json({ success: true });
   }
