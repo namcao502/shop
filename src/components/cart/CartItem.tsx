@@ -17,7 +17,7 @@ export function CartItem({ item, onUpdateQty, onRemove }: CartItemProps) {
     <div className="flex items-center gap-4 border-b py-4">
       <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded bg-gray-100">
         <img
-          src={item.image || "/placeholder.png"}
+          src={item.image || "/placeholder.svg"}
           alt={item.name}
           className="h-full w-full object-cover"
         />

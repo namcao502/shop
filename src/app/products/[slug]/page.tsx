@@ -85,7 +85,7 @@ export default function ProductDetailPage() {
         <div>
           <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
             <img
-              src={product.images[selectedImage] ?? "/placeholder.png"}
+              src={product.images[selectedImage] ?? "/placeholder.svg"}
               alt={product.name}
               className="h-full w-full object-cover"
             />

@@ -29,12 +29,27 @@ export function ImageUploader({ images, onChange, maxImages = 5 }: ImageUploader
   useEffect(() => { remainingRef.current = remaining; }, [remaining]);
 
   const mountedRef = useRef(true);
-  useEffect(() => () => { mountedRef.current = false; }, []);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const uploadFiles = useCallback(
     async (files: File[]) => {
+      const existingNames = new Set(
+        imagesRef.current.map((url) => {
+          try {
+            // Extract original filename from "products/timestamp_i_filename" path
+            const path = decodeURIComponent(new URL(url).pathname);
+            return path.split("_").slice(2).join("_");
+          } catch {
+            return url;
+          }
+        })
+      );
       const valid = files
         .filter((f) => f.type.startsWith("image/"))
+        .filter((f) => !existingNames.has(f.name))
         .slice(0, Math.max(0, remainingRef.current));
       if (valid.length === 0) return;
 
@@ -100,12 +115,15 @@ export function ImageUploader({ images, onChange, maxImages = 5 }: ImageUploader
 
   const handleRemove = useCallback(
     async (url: string) => {
-      try {
-        await deleteObject(ref(storage, url));
-      } catch (err: unknown) {
-        // Ignore "object not found" (already deleted); re-throw anything else
-        if ((err as { code?: string })?.code !== "storage/object-not-found") {
-          console.error("Failed to delete image from storage:", err);
+      // Only attempt Storage deletion for Firebase Storage URLs;
+      // external/placeholder URLs (e.g. placehold.co) are just unlinked.
+      if (url.includes("firebasestorage.googleapis.com")) {
+        try {
+          await deleteObject(ref(storage, url));
+        } catch (err: unknown) {
+          if ((err as { code?: string })?.code !== "storage/object-not-found") {
+            console.error("Failed to delete image from storage:", err);
+          }
         }
       }
       onChange(imagesRef.current.filter((u) => u !== url));
