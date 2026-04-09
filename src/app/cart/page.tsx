@@ -1,6 +1,6 @@
 "use client";
 
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/lib/cart-context";
 import { CartItem } from "@/components/cart/CartItem";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { useLocale } from "@/lib/i18n/locale-context";

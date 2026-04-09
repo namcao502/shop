@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/firebase/auth-context";
 import { LocaleProvider } from "@/lib/i18n/locale-context";
 import { ConfirmProvider } from "@/lib/confirm-context";
+import { CartProvider } from "@/lib/cart-context";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
@@ -25,11 +26,13 @@ export default function RootLayout({
         <AuthProvider>
           <LocaleProvider>
             <ConfirmProvider>
+              <CartProvider>
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <main className="flex-1">{children}</main>
                 <Footer />
               </div>
+              </CartProvider>
             </ConfirmProvider>
           </LocaleProvider>
         </AuthProvider>

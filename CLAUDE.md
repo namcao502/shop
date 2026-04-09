@@ -31,6 +31,8 @@ Copy `.env.local.example` to `.env.local`. Required variables:
 
 Customer-facing reads (products, categories) hit Firestore directly from the client. Everything that mutates state — order creation, payment initiation, admin order updates — goes through Next.js API routes (`src/app/api/`) that use the Firebase **Admin SDK**. This is what lets the server enforce prices, validate stock, and sign HMAC webhooks without trusting the client.
 
+**Exception — product image uploads:** Admins upload images directly to Firebase Storage from the client (`src/components/admin/ImageUploader.tsx`) using the client SDK. Files are stored at `products/{timestamp}_{i}_{filename}`. The download URL is then saved in the product's `images: string[]` field via the normal Firestore write path. This is safe because Firebase Storage rules restrict uploads to authenticated admins.
+
 ### Authentication layers
 
 - **Client auth:** `AuthProvider` (`src/lib/firebase/auth-context.tsx`) wraps the app; `useAuth()` gives `user`, `signIn`, `signOut`, `getIdToken`
@@ -45,7 +47,7 @@ Customer-facing reads (products, categories) hit Firestore directly from the cli
 
 ### Cart
 
-Stored in `localStorage` only (`src/lib/cart.ts`, `src/hooks/useCart.ts`). No server state. Cart quantities are validated against live Firestore stock when the checkout page loads.
+Stored in `localStorage` only (`src/lib/cart.ts`). State is shared via `CartProvider` (`src/lib/cart-context.tsx`) — call `useCart()` from there, not from any standalone hook. `CartProvider` is mounted in `layout.tsx` so all consumers share one instance. No server state. Cart quantities are validated against live Firestore stock when the checkout page loads.
 
 ### Middleware
 

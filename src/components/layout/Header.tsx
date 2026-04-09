@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/lib/firebase/auth-context";
 import { useLocale } from "@/lib/i18n/locale-context";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { useState } from "react";

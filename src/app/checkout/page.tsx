@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/lib/firebase/auth-context";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/lib/cart-context";
 import { ShippingForm } from "@/components/checkout/ShippingForm";
 import { PaymentSelector } from "@/components/checkout/PaymentSelector";
 import { QRDisplay } from "@/components/checkout/QRDisplay";

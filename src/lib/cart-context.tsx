@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { CartItem } from "@/lib/types";
 import {
   getCart,
@@ -10,7 +10,19 @@ import {
   clearCart as clearLib,
 } from "@/lib/cart";
 
-export function useCart() {
+interface CartContextValue {
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
+  updateQty: (productId: string, qty: number) => void;
+  removeItem: (productId: string) => void;
+  clear: () => void;
+  totalItems: number;
+  subtotal: number;
+}
+
+const CartContext = createContext<CartContextValue | null>(null);
+
+export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
@@ -37,5 +49,15 @@ export function useCart() {
   const totalItems = items.reduce((sum, item) => sum + item.qty, 0);
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  return { items, addItem, updateQty, removeItem, clear, totalItems, subtotal };
+  return (
+    <CartContext.Provider value={{ items, addItem, updateQty, removeItem, clear, totalItems, subtotal }}>
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+export function useCart(): CartContextValue {
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  return ctx;
 }

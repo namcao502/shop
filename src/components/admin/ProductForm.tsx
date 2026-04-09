@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useLocale } from "@/lib/i18n/locale-context";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import type { Product, Category } from "@/lib/types";
 
 interface ProductFormProps {
@@ -27,7 +28,6 @@ export function ProductForm({
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? "");
   const [isPublished, setIsPublished] = useState(product?.isPublished ?? true);
   const [images, setImages] = useState<string[]>(product?.images ?? []);
-  const [newImageUrl, setNewImageUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const { t } = useLocale();
 
@@ -41,17 +41,6 @@ export function ProductForm({
           .replace(/(^-|-$)/g, "")
       );
     }
-  };
-
-  const addImage = () => {
-    if (newImageUrl.trim()) {
-      setImages([...images, newImageUrl.trim()]);
-      setNewImageUrl("");
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -126,29 +115,8 @@ export function ProductForm({
         <label className="text-sm font-medium text-gray-700">
           {t("form.images")}
         </label>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {images.map((img, i) => (
-            <div key={i} className="relative h-16 w-16 overflow-hidden rounded border">
-              <img src={img} alt="" className="h-full w-full object-cover" />
-              <button
-                onClick={() => removeImage(i)}
-                className="absolute right-0 top-0 bg-red-600 px-1 text-xs text-white"
-              >
-                x
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="mt-2 flex gap-2">
-          <input
-            value={newImageUrl}
-            onChange={(e) => setNewImageUrl(e.target.value)}
-            placeholder={t("form.imageUrl")}
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          />
-          <Button variant="secondary" size="sm" onClick={addImage}>
-            {t("form.add")}
-          </Button>
+        <div className="mt-2">
+          <ImageUploader images={images} onChange={setImages} maxImages={5} />
         </div>
       </div>
 

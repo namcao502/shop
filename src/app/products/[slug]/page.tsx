@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { Button } from "@/components/ui/Button";
