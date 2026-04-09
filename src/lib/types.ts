@@ -32,8 +32,7 @@ export interface ShippingAddress {
   name: string;
   phone: string;
   address: string;
-  district: string;
-  city: string;
+  ward: string;
   province: string;
 }
 
@@ -69,4 +68,29 @@ export interface CartItem {
   qty: number;
   image: string;
   slug: string;
+}
+
+export type NotificationType =
+  | "order_placed"
+  | "order_shipped"
+  | "order_delivered"
+  | "order_cancelled"
+  | "payment_confirmed"
+  | "address_updated"
+  | "new_order"
+  | "payment_received"
+  | "cancel_requested"
+  | "address_update_requested"
+  | "order_deleted";
+
+export interface Notification {
+  id: string;           // Firestore doc id, added on read
+  userId: string;       // Firebase UID or the literal string "admin"
+  type: NotificationType;
+  title: string;
+  message: string;
+  orderId: string | null;
+  orderCode: string | null;
+  read: boolean;
+  createdAt: Date;
 }

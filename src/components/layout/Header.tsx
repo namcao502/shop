@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/firebase/auth-context";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/Button";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import { useState } from "react";
 
 export function Header() {
@@ -41,6 +42,8 @@ export function Header() {
               </span>
             )}
           </Link>
+
+          <NotificationBell />
 
           {loading ? (
             <div className="h-8 w-20 animate-pulse rounded bg-stone-200" />

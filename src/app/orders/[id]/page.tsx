@@ -10,6 +10,7 @@ import { ShippingForm } from "@/components/checkout/ShippingForm";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
+import { useConfirm } from "@/lib/confirm-context";
 import type { TranslationKey } from "@/lib/i18n/translations";
 import type { Order, ShippingAddress } from "@/lib/types";
 
@@ -18,6 +19,7 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const { locale, t } = useLocale();
   const { getIdToken } = useAuth();
+  const confirm = useConfirm();
   const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
 
   const [order, setOrder] = useState<Order | null>(null);
@@ -58,7 +60,7 @@ export default function OrderDetailPage() {
 
   async function handleCancel() {
     if (!order) return;
-    if (!window.confirm(t("order.cancelConfirm"))) return;
+    if (!await confirm({ title: t("order.cancelTitle"), description: t("order.cancelConfirm") })) return;
     setSaving(true);
     setActionError(null);
     setSuccessMessage(null);
@@ -113,7 +115,7 @@ export default function OrderDetailPage() {
 
   async function handleDelete() {
     if (!order) return;
-    if (!window.confirm(t("order.deleteConfirm"))) return;
+    if (!await confirm({ title: t("order.deleteTitle"), description: t("order.deleteConfirm") })) return;
     setSaving(true);
     setActionError(null);
     try {

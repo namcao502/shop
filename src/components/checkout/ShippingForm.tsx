@@ -1,19 +1,27 @@
 "use client";
 
-import { Input } from "@/components/ui/Input";
 import { useLocale } from "@/lib/i18n/locale-context";
+import { getProvinces, getWards } from "@/lib/vn-address";
 import type { ShippingAddress } from "@/lib/types";
+import { Input } from "@/components/ui/Input";
 
 interface ShippingFormProps {
   address: ShippingAddress;
   onChange: (address: ShippingAddress) => void;
+  errors?: Partial<Record<keyof ShippingAddress, string>>;
 }
 
-export function ShippingForm({ address, onChange }: ShippingFormProps) {
+const selectClass = (hasError: boolean) =>
+  `w-full rounded-lg border px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white ${
+    hasError ? "border-red-500" : "border-gray-300"
+  }`;
+
+export function ShippingForm({ address, onChange, errors = {} }: ShippingFormProps) {
   const { t } = useLocale();
-  const update = (field: keyof ShippingAddress, value: string) => {
-    onChange({ ...address, [field]: value });
-  };
+  const provinces = getProvinces();
+  const selectedProvinceCode =
+    provinces.find((p) => p.name === address.province)?.code ?? "";
+  const wards = selectedProvinceCode ? getWards(selectedProvinceCode) : [];
 
   return (
     <div className="space-y-4">
@@ -22,42 +30,70 @@ export function ShippingForm({ address, onChange }: ShippingFormProps) {
         <Input
           label={t("shipping.fullName")}
           value={address.name}
-          onChange={(e) => update("name", e.target.value)}
-          required
+          onChange={(e) => onChange({ ...address, name: e.target.value })}
+          error={errors.name}
         />
         <Input
           label={t("shipping.phone")}
           value={address.phone}
-          onChange={(e) => update("phone", e.target.value)}
-          required
+          onChange={(e) => onChange({ ...address, phone: e.target.value })}
+          error={errors.phone}
         />
       </div>
       <Input
         label={t("shipping.address")}
         value={address.address}
-        onChange={(e) => update("address", e.target.value)}
+        onChange={(e) => onChange({ ...address, address: e.target.value })}
         placeholder={t("shipping.addressPlaceholder")}
-        required
+        error={errors.address}
       />
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Input
-          label={t("shipping.district")}
-          value={address.district}
-          onChange={(e) => update("district", e.target.value)}
-          required
-        />
-        <Input
-          label={t("shipping.city")}
-          value={address.city}
-          onChange={(e) => update("city", e.target.value)}
-          required
-        />
-        <Input
-          label={t("shipping.province")}
-          value={address.province}
-          onChange={(e) => update("province", e.target.value)}
-          required
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="province-select" className="text-sm font-medium text-gray-700">
+            {t("shipping.province")}
+          </label>
+          <select
+            id="province-select"
+            className={selectClass(!!errors.province)}
+            value={selectedProvinceCode}
+            onChange={(e) => {
+              const selected = provinces.find((p) => p.code === e.target.value);
+              onChange({ ...address, province: selected?.name ?? "", ward: "" });
+            }}
+          >
+            <option value="">{t("shipping.selectProvince")}</option>
+            {provinces.map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          {errors.province && (
+            <p className="text-xs text-red-600">{errors.province}</p>
+          )}
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="ward-select" className="text-sm font-medium text-gray-700">
+            {t("shipping.ward")}
+          </label>
+          <select
+            id="ward-select"
+            className={selectClass(!!errors.ward)}
+            value={address.ward}
+            onChange={(e) => onChange({ ...address, ward: e.target.value })}
+            disabled={!selectedProvinceCode}
+          >
+            <option value="">{t("shipping.selectWard")}</option>
+            {wards.map((w) => (
+              <option key={w.code} value={w.name}>
+                {w.name}
+              </option>
+            ))}
+          </select>
+          {errors.ward && (
+            <p className="text-xs text-red-600">{errors.ward}</p>
+          )}
+        </div>
       </div>
     </div>
   );

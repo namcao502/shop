@@ -4,6 +4,8 @@ import { verifyAuth } from "@/lib/verify-admin";
 import { generateOrderCode, orderCounterRef } from "@/lib/order-code";
 import { FieldValue } from "firebase-admin/firestore";
 import type { ShippingAddress, PaymentMethod, OrderItem } from "@/lib/types";
+import { shippingAddressSchema } from "@/lib/validation";
+import { writeNotification } from "@/lib/notifications";
 
 interface CreateOrderBody {
   items: { productId: string; qty: number }[];
@@ -29,6 +31,14 @@ export async function POST(request: NextRequest) {
   if (!["vietqr", "momo"].includes(body.paymentMethod)) {
     return NextResponse.json(
       { error: "Invalid payment method" },
+      { status: 400 }
+    );
+  }
+
+  const addressValidation = shippingAddressSchema.safeParse(body.shippingAddress);
+  if (!addressValidation.success) {
+    return NextResponse.json(
+      { error: "Invalid shipping address" },
       { status: 400 }
     );
   }
@@ -94,7 +104,7 @@ export async function POST(request: NextRequest) {
         orderCode,
         userId: authResult.uid,
         items: orderItems,
-        shippingAddress: body.shippingAddress,
+        shippingAddress: addressValidation.data,
         subtotal,
         shippingFee: 0,
         totalAmount: subtotal,
@@ -104,6 +114,32 @@ export async function POST(request: NextRequest) {
         createdAt: now,
         updatedAt: now,
       });
+
+      // Customer: order placed
+      writeNotification(
+        {
+          userId: authResult.uid,
+          type: "order_placed",
+          title: `Order ${orderCode} placed`,
+          message: `Your order for ${orderItems.length} item(s) totalling ${subtotal.toLocaleString("vi-VN")} VND has been received.`,
+          orderId: orderRef.id,
+          orderCode,
+        },
+        tx
+      );
+
+      // Admin: new order arrived
+      writeNotification(
+        {
+          userId: "admin",
+          type: "new_order",
+          title: `New order ${orderCode}`,
+          message: `A new order (${orderItems.length} item(s), ${subtotal.toLocaleString("vi-VN")} VND) has been placed.`,
+          orderId: orderRef.id,
+          orderCode,
+        },
+        tx
+      );
 
       return { orderId: orderRef.id, orderCode, subtotal, totalAmount: subtotal };
     });

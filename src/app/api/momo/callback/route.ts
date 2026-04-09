@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import crypto from "crypto";
+import { writeNotification } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -66,8 +67,30 @@ export async function POST(request: NextRequest) {
       orderStatus: "confirmed",
       updatedAt: FieldValue.serverTimestamp(),
     });
+
+    const order = orderDoc.data();
+
+    // Customer: payment confirmed
+    writeNotification({
+      userId: order.userId,
+      type: "payment_confirmed",
+      title: `Payment confirmed for ${orderCode}`,
+      message: "Your MoMo payment has been verified. Your order is being prepared.",
+      orderId: orderDoc.id,
+      orderCode,
+    });
+
+    // Admin: payment received
+    writeNotification({
+      userId: "admin",
+      type: "payment_received",
+      title: `Payment received for ${orderCode}`,
+      message: `MoMo payment confirmed for order ${orderCode}.`,
+      orderId: orderDoc.id,
+      orderCode,
+    });
   } else {
-    // Payment failed
+    // Payment failed — existing logic unchanged
     console.error("MoMo payment failed", {
       orderCode,
       resultCode,

@@ -9,18 +9,21 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
-  runTransaction,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { Badge } from "@/components/ui/Badge";
 import { OrderActions } from "@/components/admin/OrderActions";
 import { formatPrice, formatDate } from "@/lib/format";
+import { useAuth } from "@/lib/firebase/auth-context";
 import { useLocale } from "@/lib/i18n/locale-context";
+import { useConfirm } from "@/lib/confirm-context";
 import type { TranslationKey } from "@/lib/i18n/translations";
 import type { Order, OrderStatus, PaymentStatus } from "@/lib/types";
 
 export default function AdminOrdersPage() {
+  const { getIdToken } = useAuth();
   const { locale, t } = useLocale();
+  const confirm = useConfirm();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,49 +49,58 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
-  const handleUpdatePayment = async (orderId: string, status: PaymentStatus) => {
-    await updateDoc(doc(db, "orders", orderId), {
-      paymentStatus: status,
-      ...(status === "paid" ? { orderStatus: "confirmed" } : {}),
-      updatedAt: serverTimestamp(),
+  const callOrderApi = async (orderId: string, body: Record<string, unknown>) => {
+    const token = await getIdToken();
+    if (!token) return;
+    const res = await fetch(`/api/orders/${orderId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
     });
+    if (!res.ok) {
+      const data = await res.json();
+      console.error("Order API error", data);
+    }
     await fetchOrders();
+  };
+
+  const handleUpdatePayment = async (orderId: string, status: PaymentStatus) => {
+    if (status === "paid") {
+      await callOrderApi(orderId, { action: "confirm_payment" });
+    } else {
+      // Other payment status changes not covered by API -- update directly
+      await updateDoc(doc(db, "orders", orderId), {
+        paymentStatus: status,
+        updatedAt: serverTimestamp(),
+      });
+      await fetchOrders();
+    }
   };
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
-    await updateDoc(doc(db, "orders", orderId), {
-      orderStatus: status,
-      updatedAt: serverTimestamp(),
-    });
-    await fetchOrders();
+    const actionMap: Partial<Record<OrderStatus, string>> = {
+      shipping: "ship",
+      delivered: "deliver",
+    };
+    const action = actionMap[status];
+    if (action) {
+      await callOrderApi(orderId, { action });
+    } else {
+      // Fallback for any status without an API action
+      await updateDoc(doc(db, "orders", orderId), {
+        orderStatus: status,
+        updatedAt: serverTimestamp(),
+      });
+      await fetchOrders();
+    }
   };
 
   const handleCancel = async (orderId: string) => {
-    if (!confirm(t("admin.cancelConfirm"))) return;
-
-    await runTransaction(db, async (tx) => {
-      const orderRef = doc(db, "orders", orderId);
-      const orderSnap = await tx.get(orderRef);
-      if (!orderSnap.exists()) return;
-
-      const orderData = orderSnap.data();
-
-      for (const item of orderData.items) {
-        const productRef = doc(db, "products", item.productId);
-        const productSnap = await tx.get(productRef);
-        if (productSnap.exists()) {
-          const currentStock = productSnap.data().stock ?? 0;
-          tx.update(productRef, { stock: currentStock + item.qty });
-        }
-      }
-
-      tx.update(orderRef, {
-        orderStatus: "cancelled",
-        updatedAt: serverTimestamp(),
-      });
-    });
-
-    await fetchOrders();
+    if (!await confirm({ title: t("admin.cancelTitle"), description: t("admin.cancelConfirm") })) return;
+    await callOrderApi(orderId, { action: "cancel" });
   };
 
   if (loading) {
@@ -139,7 +151,7 @@ export default function AdminOrdersPage() {
 
             <div className="mt-2 text-xs text-gray-500">
               {t("admin.shipTo")} {order.shippingAddress.name},{" "}
-              {order.shippingAddress.district}, {order.shippingAddress.city}
+              {order.shippingAddress.ward}, {order.shippingAddress.province}
             </div>
 
             <div className="mt-3">

@@ -38,7 +38,7 @@ Old Firestore orders with `city`/`district` fields are unaffected (schema-less).
 
 ### `src/data/vn-address.json` (new)
 
-Static two-level dataset: Province -> Wards. Sourced from the GitHub repo `ThangLeQuoc/vietnamese-provinces-database` (post-2025 reform, no district level). No districts.
+Static two-level dataset: Province -> Wards. No districts. Before implementation, verify that the chosen dataset reflects the post-2025 Vietnam administrative reform (no district level). A candidate source is `ThangLeQuoc/vietnamese-provinces-database` on GitHub, but confirm the data format matches the schema below before committing to it.
 
 ```json
 [
@@ -54,11 +54,21 @@ Static two-level dataset: Province -> Wards. Sourced from the GitHub repo `Thang
 
 ### `src/lib/vn-address.ts` (new)
 
-Typed helpers over the JSON:
+Types and helpers over the JSON:
 
 ```typescript
-export function getProvinces(): Province[]
-export function getWards(provinceCode: string): Ward[]
+export interface VnProvince {
+  code: string;
+  name: string;
+}
+
+export interface VnWard {
+  code: string;
+  name: string;
+}
+
+export function getProvinces(): VnProvince[]
+export function getWards(provinceCode: string): VnWard[]
 ```
 
 ### `src/lib/validation.ts` (new)
@@ -74,13 +84,13 @@ export const shippingAddressSchema = z.object({
   province: z.string().min(1),
 })
 
-export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>
-
-// Returns field->message map from a ZodError
+// Returns field->message map; call when safeParse result.success === false
 export function parseShippingErrors(
   error: z.ZodError
-): Partial<Record<keyof ShippingAddressInput, string>>
+): Partial<Record<keyof ShippingAddress, string>>
 ```
+
+The schema shape must match `ShippingAddress` exactly so `z.infer<typeof shippingAddressSchema>` is identical to `ShippingAddress`. Do not create a separate `ShippingAddressInput` type.
 
 ### `src/components/checkout/ShippingForm.tsx` (updated)
 
@@ -121,7 +131,7 @@ Errors appear after the user clicks "Place Order" (submit-time only, no on-blur 
 
 ## Error Messages
 
-Error messages must support both `vi` and `en` locales. New translation keys added to `src/lib/i18n/en.ts` and `src/lib/i18n/vi.ts`:
+Error messages must support both `vi` and `en` locales. New translation keys added to `src/lib/i18n/translations.ts` (`TranslationKey` union), `src/lib/i18n/en.ts`, and `src/lib/i18n/vi.ts`:
 
 | Key                          | English                              | Vietnamese                          |
 |------------------------------|--------------------------------------|-------------------------------------|

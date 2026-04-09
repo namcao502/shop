@@ -17,10 +17,12 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
+import { useConfirm } from "@/lib/confirm-context";
 import type { Product, Category } from "@/lib/types";
 
 export default function AdminProductsPage() {
   const { locale, t } = useLocale();
+  const confirm = useConfirm();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t("admin.deleteConfirm"))) return;
+    if (!await confirm({ title: t("admin.deleteTitle"), description: t("admin.deleteConfirm") })) return;
     await deleteDoc(doc(db, "products", id));
     await fetchData();
   };

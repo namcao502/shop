@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
 import type { ShippingAddress, PaymentMethod } from "@/lib/types";
+import { shippingAddressSchema, parseShippingErrors } from "@/lib/validation";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -25,10 +26,12 @@ export default function CheckoutPage() {
     name: "",
     phone: "",
     address: "",
-    district: "",
-    city: "",
+    ward: "",
     province: "",
   });
+  const [addressErrors, setAddressErrors] = useState<
+    Partial<Record<keyof ShippingAddress, string>>
+  >({});
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("vietqr");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,13 +98,20 @@ export default function CheckoutPage() {
     );
   }
 
-  const isAddressComplete = Object.values(address).every((v) => v.trim() !== "");
-
   const handleSubmit = async () => {
-    if (!isAddressComplete) {
-      setError(t("checkout.fillAllFields"));
+    const validation = shippingAddressSchema.safeParse(address);
+    if (!validation.success) {
+      const fieldErrors = parseShippingErrors(validation.error);
+      const localized: Partial<Record<keyof ShippingAddress, string>> = {};
+      if (fieldErrors.name) localized.name = t("validation.nameMin");
+      if (fieldErrors.phone) localized.phone = t("validation.phoneInvalid");
+      if (fieldErrors.address) localized.address = t("validation.addressMin");
+      if (fieldErrors.ward) localized.ward = t("validation.wardRequired");
+      if (fieldErrors.province) localized.province = t("validation.provinceRequired");
+      setAddressErrors(localized);
       return;
     }
+    setAddressErrors({});
 
     setSubmitting(true);
     setError(null);
@@ -219,7 +229,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <ShippingForm address={address} onChange={setAddress} />
+        <ShippingForm address={address} onChange={setAddress} errors={addressErrors} />
         <PaymentSelector selected={paymentMethod} onSelect={setPaymentMethod} />
 
         {error && (

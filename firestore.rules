@@ -39,5 +39,19 @@ service cloud.firestore {
     match /counters/{counterId} {
       allow read, write: if false;
     }
+
+    // Notifications: users read/update-read their own; admins also read "admin" docs; all creates via Admin SDK
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid
+          || (isAdmin() && resource.data.userId == "admin"));
+      allow update: if request.auth != null
+        && (
+          resource.data.userId == request.auth.uid
+          || (isAdmin() && resource.data.userId == "admin")
+        )
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["read"]);
+      allow create, delete: if false;
+    }
   }
 }
