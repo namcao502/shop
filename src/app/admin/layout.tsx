@@ -33,8 +33,15 @@ export default function AdminLayout({
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">
-      <AdminSidebar />
-      <div className="flex-1 overflow-y-auto p-6">{children}</div>
+      {/* Sidebar — desktop only */}
+      <div className="hidden md:block">
+        <AdminSidebar />
+      </div>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Top tab bar — mobile only */}
+        <AdminSidebar mobile />
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>
+      </div>
     </div>
   );
 }

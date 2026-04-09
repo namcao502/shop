@@ -34,10 +34,10 @@ export default function HomePage() {
       {/* Hero */}
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 text-center">
-          <h1 className="text-5xl font-extrabold tracking-tight text-stone-900">
+          <h1 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">
             {t("home.hero.title")}
           </h1>
-          <p className="mt-4 text-lg text-stone-500">
+          <p className="mt-4 text-base text-stone-500 sm:text-lg">
             {t("home.hero.subtitle")}
           </p>
           <Link href="/products">

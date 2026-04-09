@@ -10,7 +10,11 @@ const SIDEBAR_ICONS: Record<string, string> = {
   "/admin/orders": "🧾",
 };
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  mobile?: boolean;
+}
+
+export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
   const pathname = usePathname();
   const { t } = useLocale();
 
@@ -20,6 +24,38 @@ export function AdminSidebar() {
     { href: "/admin/orders", label: t("admin.orders") },
   ];
 
+  // Mobile: horizontal tab bar at top
+  if (mobile) {
+    return (
+      <div className="flex items-center gap-1 border-b border-stone-100 bg-white/90 px-3 py-2 md:hidden">
+        {links.map((link) => {
+          const isActive =
+            link.href === "/admin"
+              ? pathname === "/admin"
+              : pathname.startsWith(link.href);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                isActive
+                  ? "bg-amber-500/10 text-amber-800"
+                  : "text-stone-600 hover:bg-stone-50"
+              }`}
+            >
+              <span>{SIDEBAR_ICONS[link.href]}</span>
+              {link.label}
+            </Link>
+          );
+        })}
+        <Link href="/" className="ml-auto text-xs text-stone-400 hover:text-stone-600">
+          ← {t("admin.backToShop")}
+        </Link>
+      </div>
+    );
+  }
+
+  // Desktop: vertical sidebar
   return (
     <aside className="w-56 border-r border-stone-100/90 bg-white/75 backdrop-blur-md">
       <div className="p-4">
@@ -31,7 +67,6 @@ export function AdminSidebar() {
             link.href === "/admin"
               ? pathname === "/admin"
               : pathname.startsWith(link.href);
-
           return (
             <Link
               key={link.href}

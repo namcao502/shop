@@ -100,7 +100,8 @@ export default function AdminProductsPage() {
         <Button onClick={() => setCreating(true)}>{t("admin.addProduct")}</Button>
       </div>
 
-      <div className="rounded-lg border bg-white">
+      {/* Desktop table */}
+      <div className="hidden rounded-lg border bg-white md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs uppercase text-gray-500">
@@ -130,26 +131,41 @@ export default function AdminProductsPage() {
                 </td>
                 <td className="px-4 py-2">
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditing(product)}
-                    >
-                      {t("admin.edit")}
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      {t("admin.delete")}
-                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setEditing(product)}>{t("admin.edit")}</Button>
+                    <Button variant="danger" size="sm" onClick={() => handleDelete(product.id)}>{t("admin.delete")}</Button>
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="space-y-3 md:hidden">
+        {products.map((product) => (
+          <div key={product.id} className="rounded-lg border bg-white p-4">
+            <div className="flex items-start justify-between gap-2">
+              <p className="font-medium text-gray-900">{product.name}</p>
+              {product.isPublished ? (
+                <Badge variant="confirmed">{t("admin.published")}</Badge>
+              ) : (
+                <Badge variant="cancelled">{t("admin.draft")}</Badge>
+              )}
+            </div>
+            <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
+              <span>{formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}</span>
+              <span>·</span>
+              <span className={product.stock < 5 ? "font-bold text-red-600" : ""}>
+                {t("admin.colStock")}: {product.stock}
+              </span>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setEditing(product)}>{t("admin.edit")}</Button>
+              <Button variant="danger" size="sm" onClick={() => handleDelete(product.id)}>{t("admin.delete")}</Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
