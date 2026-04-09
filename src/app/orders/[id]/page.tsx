@@ -28,25 +28,30 @@ export default function OrderDetailPage() {
   const [draftAddress, setDraftAddress] = useState<ShippingAddress | null>(null);
 
   async function fetchOrder() {
-    const snap = await getDoc(doc(db, "orders", params.id as string));
-    if (snap.exists()) {
-      const data = snap.data();
-      setOrder({
-        id: snap.id,
-        ...data,
-        createdAt: data.createdAt?.toDate() ?? new Date(),
-        updatedAt: data.updatedAt?.toDate() ?? new Date(),
-      } as Order);
+    try {
+      const snap = await getDoc(doc(db, "orders", params.id as string));
+      if (snap.exists()) {
+        const data = snap.data();
+        setOrder({
+          id: snap.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() ?? new Date(),
+          updatedAt: data.updatedAt?.toDate() ?? new Date(),
+        } as Order);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => {
     fetchOrder();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   async function authHeader(): Promise<string> {
     const token = await getIdToken();
+    if (!token) throw new Error("Not authenticated");
     return `Bearer ${token}`;
   }
 
