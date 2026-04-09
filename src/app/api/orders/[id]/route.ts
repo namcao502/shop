@@ -50,12 +50,16 @@ export async function PATCH(
           throw new Error("Order is no longer cancellable");
         }
         const freshItems = freshSnap.data()!.items;
-        for (const item of freshItems) {
-          const productRef = adminDb.collection("products").doc(item.productId);
-          const productSnap = await tx.get(productRef);
-          if (productSnap.exists) {
-            const currentStock = productSnap.data()!.stock ?? 0;
-            tx.update(productRef, { stock: currentStock + item.qty });
+        // All reads must come before all writes in a Firestore transaction
+        const productRefs = freshItems.map((item: { productId: string }) =>
+          adminDb.collection("products").doc(item.productId)
+        );
+        const productSnaps = await Promise.all(productRefs.map((ref: FirebaseFirestore.DocumentReference) => tx.get(ref)));
+
+        for (let i = 0; i < freshItems.length; i++) {
+          if (productSnaps[i].exists) {
+            const currentStock = productSnaps[i].data()!.stock ?? 0;
+            tx.update(productRefs[i], { stock: currentStock + freshItems[i].qty });
           }
         }
         tx.update(orderRef, {
