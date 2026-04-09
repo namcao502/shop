@@ -23,6 +23,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [addressFormOpen, setAddressFormOpen] = useState(false);
   const [draftAddress, setDraftAddress] = useState<ShippingAddress | null>(null);
@@ -60,6 +61,7 @@ export default function OrderDetailPage() {
     if (!window.confirm(t("order.cancelConfirm"))) return;
     setSaving(true);
     setActionError(null);
+    setSuccessMessage(null);
     try {
       const res = await fetch(`/api/orders/${order.id}`, {
         method: "PATCH",
@@ -73,6 +75,7 @@ export default function OrderDetailPage() {
         const data = await res.json();
         setActionError(data.error ?? "Something went wrong");
       } else {
+        setSuccessMessage(t("order.cancelSuccess"));
         await fetchOrder();
       }
     } finally {
@@ -84,6 +87,7 @@ export default function OrderDetailPage() {
     if (!order || !draftAddress) return;
     setSaving(true);
     setActionError(null);
+    setSuccessMessage(null);
     try {
       const res = await fetch(`/api/orders/${order.id}`, {
         method: "PATCH",
@@ -99,6 +103,7 @@ export default function OrderDetailPage() {
       } else {
         setAddressFormOpen(false);
         setDraftAddress(null);
+        setSuccessMessage(t("order.addressUpdated"));
         await fetchOrder();
       }
     } finally {
@@ -129,6 +134,7 @@ export default function OrderDetailPage() {
 
   function openAddressForm() {
     if (!order) return;
+    setSuccessMessage(null);
     setDraftAddress({ ...order.shippingAddress });
     setAddressFormOpen(true);
   }
@@ -225,6 +231,9 @@ export default function OrderDetailPage() {
 
           {actionError && (
             <p className="mt-2 text-sm text-red-600">{actionError}</p>
+          )}
+          {successMessage && (
+            <p className="mt-2 text-sm text-green-600">{successMessage}</p>
           )}
 
           {/* Inline address edit form */}
