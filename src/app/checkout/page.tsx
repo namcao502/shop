@@ -14,6 +14,7 @@ import { formatPrice } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
 import type { ShippingAddress, PaymentMethod } from "@/lib/types";
 import { shippingAddressSchema, parseShippingErrors } from "@/lib/validation";
+import { calculateShippingFee } from "@/lib/shipping";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -66,6 +67,12 @@ export default function CheckoutPage() {
       validateStock();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
+  const shippingFee: number | null = address.province
+    ? calculateShippingFee(address.province, subtotal)
+    : null;
+  const checkoutTotal = subtotal + (shippingFee ?? 0);
 
   if (authLoading) {
     return (
@@ -236,11 +243,28 @@ export default function CheckoutPage() {
               <span className="text-gray-600">
                 {item.name} x {item.qty}
               </span>
-              <span>{formatPrice(item.price * item.qty, locale === "vi" ? "vi-VN" : "en-US")}</span>
+              <span>{formatPrice(item.price * item.qty, fmtLocale)}</span>
             </div>
           ))}
-          <div className="mt-3 border-t pt-3 text-right text-lg font-bold text-amber-700">
-            {formatPrice(subtotal, locale === "vi" ? "vi-VN" : "en-US")}
+          <div className="mt-3 border-t pt-3 space-y-1 text-sm">
+            <div className="flex justify-between text-gray-600">
+              <span>{t("order.subtotal")}</span>
+              <span>{formatPrice(subtotal, fmtLocale)}</span>
+            </div>
+            {shippingFee !== null && (
+              <div className="flex justify-between text-gray-600">
+                <span>{t("order.shipping")}</span>
+                <span>
+                  {shippingFee === 0
+                    ? t("checkout.shippingFree")
+                    : formatPrice(shippingFee, fmtLocale)}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between border-t pt-1 text-base font-bold text-amber-700">
+              <span>{t("order.total")}</span>
+              <span>{formatPrice(checkoutTotal, fmtLocale)}</span>
+            </div>
           </div>
         </div>
 
