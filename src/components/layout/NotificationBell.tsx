@@ -5,6 +5,9 @@ import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/lib/firebase/auth-context";
+import { useLocale } from "@/lib/i18n/locale-context";
+import type { NotificationType } from "@/lib/types";
+import type { TranslationKey } from "@/lib/i18n/translations";
 
 function formatRelative(date: Date): string {
   const diffMs = Date.now() - date.getTime();
@@ -17,8 +20,23 @@ function formatRelative(date: Date): string {
   return `${days}d ago`;
 }
 
+function notificationText(
+  type: NotificationType,
+  orderCode: string | null,
+  t: (key: TranslationKey) => string
+): { title: string; message: string } {
+  const titleKey = `notification.${type}.title` as TranslationKey;
+  const messageKey = `notification.${type}.message` as TranslationKey;
+  const code = orderCode ?? "";
+  return {
+    title: t(titleKey).replace("{orderCode}", code),
+    message: t(messageKey),
+  };
+}
+
 export function NotificationBell() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -41,7 +59,7 @@ export function NotificationBell() {
       {/* Bell button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative p-1 text-stone-600 hover:text-stone-900"
+        className="relative rounded-full p-1 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 active:bg-stone-200"
         aria-label="Notifications"
       >
         <svg
@@ -69,13 +87,13 @@ export function NotificationBell() {
         <div className="absolute right-0 top-10 z-50 w-80 rounded-lg border border-stone-200 bg-white shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
-            <span className="text-sm font-bold text-stone-900">Notifications</span>
+            <span className="text-sm font-bold text-stone-900">{t("notification.title")}</span>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
                 className="text-xs font-semibold text-amber-600 hover:text-amber-700"
               >
-                Mark all as read
+                {t("notification.markAllRead")}
               </button>
             )}
           </div>
@@ -83,7 +101,7 @@ export function NotificationBell() {
           {/* List */}
           {notifications.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-stone-400">
-              No notifications yet
+              {t("notification.empty")}
             </div>
           ) : (
             <div className="max-h-96 overflow-y-auto">
@@ -96,13 +114,20 @@ export function NotificationBell() {
                       : "opacity-70"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-bold text-stone-900">{n.title}</span>
-                    <span className="shrink-0 text-xs text-stone-400">
-                      {formatRelative(n.createdAt)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-stone-600">{n.message}</p>
+                  {(() => {
+                    const { title, message } = notificationText(n.type, n.orderCode, t);
+                    return (
+                      <>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-xs font-bold text-stone-900">{title}</span>
+                          <span className="shrink-0 text-xs text-stone-400">
+                            {formatRelative(n.createdAt)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-stone-600">{message}</p>
+                      </>
+                    );
+                  })()}
                   {n.orderId && (
                     <Link
                       href={`/orders?highlight=${n.orderId}`}
@@ -112,7 +137,7 @@ export function NotificationBell() {
                       }}
                       className="mt-1 block text-xs font-semibold text-amber-600 hover:text-amber-700"
                     >
-                      VIEW ORDER &rarr;
+                      {t("notification.viewOrder")} &rarr;
                     </Link>
                   )}
                   {!n.read && !n.orderId && (
@@ -120,7 +145,7 @@ export function NotificationBell() {
                       onClick={() => markOneRead(n.id)}
                       className="mt-1 text-xs text-stone-400 hover:text-stone-600"
                     >
-                      Mark as read
+                      {t("notification.markAsRead")}
                     </button>
                   )}
                 </div>

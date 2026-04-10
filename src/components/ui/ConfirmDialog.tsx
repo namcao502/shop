@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
+import { useLocale } from "@/lib/i18n/locale-context";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -17,11 +18,14 @@ export function ConfirmDialog({
   isOpen,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useLocale();
+  const resolvedConfirmLabel = confirmLabel ?? t("form.confirm");
+  const resolvedCancelLabel = cancelLabel ?? t("form.cancel");
   useEffect(() => {
     if (!isOpen) return;
     document.body.classList.add("overflow-hidden");
@@ -56,10 +60,10 @@ export function ConfirmDialog({
         <p id="confirm-dialog-description" className="mt-1 text-sm text-gray-600">{description}</p>
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="secondary" onClick={onCancel} autoFocus>
-            {cancelLabel}
+            {resolvedCancelLabel}
           </Button>
           <Button variant="danger" onClick={onConfirm}>
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </Button>
         </div>
       </div>

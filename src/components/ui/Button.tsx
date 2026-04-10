@@ -15,10 +15,10 @@ export function Button({
   const base = "inline-flex items-center justify-center rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
-    primary: "bg-amber-600 text-white hover:bg-amber-700",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
-    danger: "bg-red-600 text-white hover:bg-red-700",
-    ghost: "text-gray-600 hover:bg-gray-100",
+    primary: "bg-amber-600 text-white hover:bg-amber-700 active:bg-amber-800",
+    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300",
+    danger: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800",
+    ghost: "text-gray-600 hover:bg-gray-100 active:bg-gray-200",
   };
 
   const sizes = {

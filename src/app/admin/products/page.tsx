@@ -15,12 +15,14 @@ import { Badge } from "@/components/ui/Badge";
 import { formatPrice } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { useConfirm } from "@/lib/confirm-context";
+import { useToast } from "@/lib/toast-context";
 import type { Product, Category } from "@/lib/types";
 
 export default function AdminProductsPage() {
   const { locale, t } = useLocale();
   const { getIdToken } = useAuth();
   const confirm = useConfirm();
+  const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,9 +66,12 @@ export default function AdminProductsPage() {
     );
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
-      setSaveError(json.error ?? "Failed to save product");
+      const msg = json.error ?? "Failed to save product";
+      setSaveError(msg);
+      toast(msg, "error");
       return;
     }
+    toast(t(isEdit ? "toast.productUpdated" : "toast.productCreated"), "success");
     setEditing(null);
     setCreating(false);
     await fetchData();
@@ -81,9 +86,10 @@ export default function AdminProductsPage() {
     });
     if (!res.ok && res.status !== 204) {
       const json = await res.json().catch(() => ({}));
-      alert(json.error ?? "Failed to delete product");
+      toast(json.error ?? "Failed to delete product", "error");
       return;
     }
+    toast(t("toast.productDeleted"), "info");
     await fetchData();
   };
 

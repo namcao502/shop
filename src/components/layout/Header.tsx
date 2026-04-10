@@ -6,7 +6,7 @@ import { useLocale } from "@/lib/i18n/locale-context";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/layout/NotificationBell";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export function Header() {
   const { user, loading, signIn, signOut } = useAuth();
@@ -14,6 +14,17 @@ export function Header() {
   const { totalItems } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleOutsideClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   const closeMobile = () => setMobileOpen(false);
 
@@ -52,10 +63,10 @@ export function Header() {
           {loading ? (
             <div className="h-8 w-20 animate-pulse rounded bg-stone-200" />
           ) : user ? (
-            <div className="relative">
+            <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-stone-100 active:bg-stone-200"
               >
                 {user.photoURL && (
                   <img src={user.photoURL} alt="" className="h-8 w-8 rounded-full" />
@@ -101,7 +112,7 @@ export function Header() {
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
-            className="text-stone-600"
+            className="rounded-lg p-1 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 active:bg-stone-200"
           >
             {mobileOpen ? (
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

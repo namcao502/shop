@@ -46,7 +46,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([]);
   }, []);
 
-  const totalItems = items.reduce((sum, item) => sum + item.qty, 0);
+  const totalItems = items.length;
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   return (

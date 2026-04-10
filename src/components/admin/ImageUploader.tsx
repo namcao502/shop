@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { storage } from "@/lib/firebase/config";
+import { useLocale } from "@/lib/i18n/locale-context";
 
 interface ImageUploaderProps {
   images: string[];
@@ -13,6 +14,7 @@ interface ImageUploaderProps {
 type UploadSlot = { id: string; status: "uploading" | "error" };
 
 export function ImageUploader({ images, onChange, maxImages = 5 }: ImageUploaderProps) {
+  const { t } = useLocale();
   const [slots, setSlots] = useState<UploadSlot[]>([]);
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -141,7 +143,7 @@ export function ImageUploader({ images, onChange, maxImages = 5 }: ImageUploader
               <button
                 type="button"
                 onClick={() => handleRemove(img)}
-                className="absolute right-0 top-0 bg-red-600 px-1 text-xs leading-4 text-white"
+                className="absolute right-0 top-0 bg-red-600 px-1 text-xs leading-4 text-white transition-colors hover:bg-red-700 active:bg-red-800"
               >
                 ✕
               </button>
@@ -197,9 +199,9 @@ export function ImageUploader({ images, onChange, maxImages = 5 }: ImageUploader
               : "border-gray-300 text-gray-500 hover:border-amber-400"
           }`}
         >
-          <span>Drag images here or click to browse</span>
+          <span>{t("form.dragImagesHint")}</span>
           <span className="mt-1 text-xs">
-            {remaining} slot{remaining !== 1 ? "s" : ""} remaining
+            {t("form.slotsRemaining").replace("{count}", String(remaining))}
           </span>
         </div>
       )}

@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase/config";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
+import { useToast } from "@/lib/toast-context";
 import { Button } from "@/components/ui/Button";
 import type { Product } from "@/lib/types";
 
@@ -15,11 +16,11 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { addItem } = useCart();
   const { locale, t } = useLocale();
+  const { toast } = useToast();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(false);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -74,8 +75,7 @@ export default function ProductDetailPage() {
       image: product.images[0] ?? "",
       slug: product.slug,
     });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    toast(t("toast.addedToCart"), "success");
   };
 
   return (
@@ -96,8 +96,8 @@ export default function ProductDetailPage() {
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`h-16 w-16 overflow-hidden rounded border-2 ${
-                    selectedImage === i ? "border-amber-600" : "border-transparent"
+                  className={`h-16 w-16 overflow-hidden rounded border-2 transition-all hover:opacity-80 active:opacity-60 ${
+                    selectedImage === i ? "border-amber-600" : "border-transparent hover:border-gray-300"
                   }`}
                 >
                   <img src={img} alt="" className="h-full w-full object-cover" />
@@ -122,20 +122,20 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 hover:bg-gray-50"
+                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200"
                 >
                   -
                 </button>
                 <span className="w-8 text-center">{qty}</span>
                 <button
                   onClick={() => setQty(Math.min(product.stock, qty + 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 hover:bg-gray-50"
+                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200"
                 >
                   +
                 </button>
               </div>
               <Button onClick={handleAddToCart}>
-                {added ? t("product.added") : t("product.addToCart")}
+                {t("product.addToCart")}
               </Button>
             </div>
           )}

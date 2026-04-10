@@ -1,4 +1,7 @@
+"use client";
+
 import { ProductCard } from "./ProductCard";
+import { useLocale } from "@/lib/i18n/locale-context";
 import type { Product } from "@/lib/types";
 
 interface ProductGridProps {
@@ -6,9 +9,10 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products }: ProductGridProps) {
+  const { t } = useLocale();
   if (products.length === 0) {
     return (
-      <p className="py-12 text-center text-gray-500">No products found.</p>
+      <p className="py-12 text-center text-gray-500">{t("products.noFound")}</p>
     );
   }
 

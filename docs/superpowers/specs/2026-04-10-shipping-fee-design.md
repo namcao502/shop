@@ -61,13 +61,18 @@ User clicks "Place Order"
   -> order saved with correct shippingFee + totalAmount
 ```
 
+## i18n
+
+No new translation keys are needed. The checkout order summary reuses existing keys: `order.subtotal`, `order.shipping`, `order.total`. The "Free shipping" case reuses `order.shipping` with a zero-fee value formatted as free.
+
 ## Files changed
 
 | File | Change |
 |------|--------|
 | `src/lib/shipping.ts` | New -- fee constants and calculateShippingFee() |
-| `src/app/checkout/page.tsx` | Show shipping fee + updated total in order summary |
+| `src/app/checkout/page.tsx` | Show subtotal, shipping fee, and total in order summary |
 | `src/app/api/orders/route.ts` | Replace hardcoded shippingFee: 0 with calculated value |
+| `src/app/cart/page.tsx` | Remove "Shipping calculated after checkout" note (now stale) |
 
 ## Out of scope
 

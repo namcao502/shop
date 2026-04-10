@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#e85d24"/>
+  <!-- Storefront roof -->
+  <path d="M4 13 L16 6 L28 13 L28 15 L4 15 Z" fill="white"/>
+  <!-- Store body -->
+  <rect x="6" y="15" width="20" height="11" rx="1" fill="white"/>
+  <!-- Door -->
+  <rect x="13" y="19" width="6" height="7" rx="1" fill="#e85d24"/>
+  <!-- Left window -->
+  <rect x="8" y="17" width="4" height="4" rx="0.5" fill="#e85d24"/>
+  <!-- Right window -->
+  <rect x="20" y="17" width="4" height="4" rx="0.5" fill="#e85d24"/>
+  <!-- Awning stripe -->
+  <rect x="6" y="15" width="20" height="2.5" rx="0" fill="#c94d18"/>
+</svg>

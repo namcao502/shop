@@ -46,15 +46,15 @@ export function ProductForm({
 
   const validate = (): boolean => {
     const next: Record<string, string> = {};
-    if (!name.trim()) next.name = "Name is required";
-    if (!slug.trim()) next.slug = "Slug is required";
+    if (!name.trim()) next.name = t("validation.productNameRequired");
+    if (!slug.trim()) next.slug = t("validation.slugRequired");
     else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))
-      next.slug = "Slug must be lowercase alphanumeric with hyphens";
+      next.slug = t("validation.slugFormat");
     const parsedPrice = parseInt(price, 10);
-    if (!price || isNaN(parsedPrice) || parsedPrice < 1) next.price = "Price must be at least 1";
+    if (!price || isNaN(parsedPrice) || parsedPrice < 1) next.price = t("validation.priceMin");
     const parsedStock = parseInt(stock, 10);
-    if (stock === "" || isNaN(parsedStock) || parsedStock < 0) next.stock = "Stock cannot be negative";
-    if (!categoryId) next.categoryId = "Category is required";
+    if (stock === "" || isNaN(parsedStock) || parsedStock < 0) next.stock = t("validation.stockNegative");
+    if (!categoryId) next.categoryId = t("validation.categoryRequired");
     setErrors(next);
     return Object.keys(next).length === 0;
   };

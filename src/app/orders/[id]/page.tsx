@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { useConfirm } from "@/lib/confirm-context";
+import { useToast } from "@/lib/toast-context";
 import type { TranslationKey } from "@/lib/i18n/translations";
 import type { Order, ShippingAddress } from "@/lib/types";
 
@@ -21,12 +22,11 @@ export default function OrderDetailPage() {
   const { locale, t } = useLocale();
   const { getIdToken } = useAuth();
   const confirm = useConfirm();
+  const { toast } = useToast();
   const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [addressFormOpen, setAddressFormOpen] = useState(false);
   const [draftAddress, setDraftAddress] = useState<ShippingAddress | null>(null);
@@ -61,8 +61,6 @@ export default function OrderDetailPage() {
     if (!order) return;
     if (!await confirm({ title: t("order.cancelTitle"), description: t("order.cancelConfirm") })) return;
     setSaving(true);
-    setActionError(null);
-    setSuccessMessage(null);
     try {
       const res = await fetch(`/api/orders/${order.id}`, {
         method: "PATCH",
@@ -74,9 +72,9 @@ export default function OrderDetailPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setActionError(data.error ?? "Something went wrong");
+        toast(data.error ?? t("toast.somethingWentWrong"), "error");
       } else {
-        setSuccessMessage(t("order.cancelSuccess"));
+        toast(t("order.cancelSuccess"), "success");
       }
     } finally {
       setSaving(false);
@@ -86,8 +84,6 @@ export default function OrderDetailPage() {
   async function handleSaveAddress() {
     if (!order || !draftAddress) return;
     setSaving(true);
-    setActionError(null);
-    setSuccessMessage(null);
     try {
       const res = await fetch(`/api/orders/${order.id}`, {
         method: "PATCH",
@@ -99,11 +95,11 @@ export default function OrderDetailPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setActionError(data.error ?? "Something went wrong");
+        toast(data.error ?? t("toast.somethingWentWrong"), "error");
       } else {
         setAddressFormOpen(false);
         setDraftAddress(null);
-        setSuccessMessage(t("order.addressUpdated"));
+        toast(t("order.addressUpdated"), "success");
       }
     } finally {
       setSaving(false);
@@ -114,7 +110,6 @@ export default function OrderDetailPage() {
     if (!order) return;
     if (!await confirm({ title: t("order.deleteTitle"), description: t("order.deleteConfirm") })) return;
     setSaving(true);
-    setActionError(null);
     try {
       const res = await fetch(`/api/orders/${order.id}`, {
         method: "DELETE",
@@ -122,7 +117,7 @@ export default function OrderDetailPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setActionError(data.error ?? "Something went wrong");
+        toast(data.error ?? t("toast.somethingWentWrong"), "error");
       } else {
         router.push("/orders");
       }
@@ -133,7 +128,6 @@ export default function OrderDetailPage() {
 
   function openAddressForm() {
     if (!order) return;
-    setSuccessMessage(null);
     setDraftAddress({ ...order.shippingAddress });
     setAddressFormOpen(true);
   }
@@ -141,7 +135,6 @@ export default function OrderDetailPage() {
   async function handleShowQR() {
     if (!order) return;
     setQrLoading(true);
-    setActionError(null);
     try {
       const res = await fetch("/api/vietqr", {
         method: "POST",
@@ -151,11 +144,11 @@ export default function OrderDetailPage() {
         },
         body: JSON.stringify({ amount: order.totalAmount, orderCode: order.orderCode }),
       });
-      if (!res.ok) throw new Error("Failed to generate QR code");
+      if (!res.ok) throw new Error(t("toast.qrFailed"));
       const { qrUrl: url } = await res.json();
       setQrUrl(url);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Something went wrong");
+      toast(err instanceof Error ? err.message : t("toast.somethingWentWrong"), "error");
     } finally {
       setQrLoading(false);
     }
@@ -164,7 +157,6 @@ export default function OrderDetailPage() {
   async function handlePayWithMomo() {
     if (!order) return;
     setQrLoading(true);
-    setActionError(null);
     try {
       const res = await fetch("/api/momo/create", {
         method: "POST",
@@ -176,12 +168,12 @@ export default function OrderDetailPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Failed to create MoMo payment");
+        throw new Error(data.error ?? t("toast.momoFailed"));
       }
       const { payUrl } = await res.json();
       window.location.href = payUrl;
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Something went wrong");
+      toast(err instanceof Error ? err.message : t("toast.somethingWentWrong"), "error");
       setQrLoading(false);
     }
   }
@@ -272,9 +264,6 @@ export default function OrderDetailPage() {
               {qrLoading ? t("order.momoRedirecting") : t("order.payWithMomo")}
             </button>
           )}
-          {actionError && (
-            <p className="mt-2 text-sm text-red-600">{actionError}</p>
-          )}
         </div>
       )}
 
@@ -311,13 +300,6 @@ export default function OrderDetailPage() {
             )}
           </div>
 
-          {actionError && (
-            <p className="mt-2 text-sm text-red-600">{actionError}</p>
-          )}
-          {successMessage && (
-            <p className="mt-2 text-sm text-green-600">{successMessage}</p>
-          )}
-
           {/* Inline address edit form */}
           {addressFormOpen && draftAddress && (
             <div className="mt-4 border-t pt-4">
@@ -331,10 +313,10 @@ export default function OrderDetailPage() {
                   disabled={saving}
                   className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
                 >
-                  {saving ? "..." : t("order.save")}
+                  {saving ? t("form.saving") : t("order.save")}
                 </button>
                 <button
-                  onClick={() => { setAddressFormOpen(false); setDraftAddress(null); setActionError(null); }}
+                  onClick={() => { setAddressFormOpen(false); setDraftAddress(null); }}
                   disabled={saving}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >

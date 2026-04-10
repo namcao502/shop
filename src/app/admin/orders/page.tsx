@@ -14,6 +14,7 @@ import { formatPrice, formatDate } from "@/lib/format";
 import { useAuth } from "@/lib/firebase/auth-context";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { useConfirm } from "@/lib/confirm-context";
+import { useToast } from "@/lib/toast-context";
 import type { TranslationKey } from "@/lib/i18n/translations";
 import type { Order, OrderStatus, PaymentStatus } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export default function AdminOrdersPage() {
   const { getIdToken } = useAuth();
   const { locale, t } = useLocale();
   const confirm = useConfirm();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -47,7 +49,11 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
-  const callOrderApi = async (orderId: string, body: Record<string, unknown>) => {
+  const callOrderApi = async (
+    orderId: string,
+    body: Record<string, unknown>,
+    successMessage: string
+  ) => {
     setActionError(null);
     const token = await getIdToken();
     if (!token) return;
@@ -61,34 +67,36 @@ export default function AdminOrdersPage() {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setActionError(data.error ?? "Action failed");
+      const msg = data.error ?? "Action failed";
+      setActionError(msg);
+      toast(msg, "error");
       return;
     }
+    toast(successMessage, "success");
     await fetchOrders();
   };
 
   const handleUpdatePayment = async (orderId: string, status: PaymentStatus) => {
     if (status === "paid") {
-      await callOrderApi(orderId, { action: "confirm_payment" });
+      await callOrderApi(orderId, { action: "confirm_payment" }, t("toast.paymentConfirmed"));
     }
-    // Other payment status transitions are not supported via the admin UI
   };
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
-    const actionMap: Partial<Record<OrderStatus, string>> = {
-      shipping: "ship",
-      delivered: "deliver",
-      cancelled: "cancel",
+    const actionMap: Partial<Record<OrderStatus, { action: string; label: string }>> = {
+      shipping: { action: "ship", label: t("toast.orderShipping") },
+      delivered: { action: "deliver", label: t("toast.orderDelivered") },
+      cancelled: { action: "cancel", label: t("order.cancelSuccess") },
     };
-    const action = actionMap[status];
-    if (action) {
-      await callOrderApi(orderId, { action });
+    const entry = actionMap[status];
+    if (entry) {
+      await callOrderApi(orderId, { action: entry.action }, entry.label);
     }
   };
 
   const handleCancel = async (orderId: string) => {
     if (!await confirm({ title: t("admin.cancelTitle"), description: t("admin.cancelConfirm") })) return;
-    await callOrderApi(orderId, { action: "cancel" });
+    await callOrderApi(orderId, { action: "cancel" }, t("order.cancelSuccess"));
   };
 
   if (loading) {
@@ -128,7 +136,7 @@ export default function AdminOrdersPage() {
               <Badge variant={order.paymentStatus}>{t(`status.${order.paymentStatus}` as TranslationKey)}</Badge>
               <Badge variant={order.orderStatus}>{t(`status.${order.orderStatus}` as TranslationKey)}</Badge>
               <span className="text-xs text-gray-500">
-                {order.paymentMethod === "vietqr" ? "VietQR" : "MoMo"}
+                {order.paymentMethod === "vietqr" ? t("order.bankTransfer") : t("order.momo")}
               </span>
             </div>
 

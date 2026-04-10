@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/firebase/auth-context";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
+import { useLocale } from "@/lib/i18n/locale-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -11,6 +12,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { user, loading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function AdminLayout({
   if (loading) {
     return (
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500">{t("common.loading")}</p>
       </div>
     );
   }
