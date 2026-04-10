@@ -261,10 +261,12 @@ export default function CheckoutPage() {
                 </span>
               </div>
             )}
-            <div className="flex justify-between border-t pt-1 text-base font-bold text-amber-700">
-              <span>{t("order.total")}</span>
-              <span>{formatPrice(checkoutTotal, fmtLocale)}</span>
-            </div>
+            {shippingFee !== null && (
+              <div className="flex justify-between border-t pt-1 text-base font-bold text-amber-700">
+                <span>{t("order.total")}</span>
+                <span>{formatPrice(checkoutTotal, fmtLocale)}</span>
+              </div>
+            )}
           </div>
         </div>
 
