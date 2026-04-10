@@ -6,6 +6,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import type { OrderItem } from "@/lib/types";
 import { shippingAddressSchema } from "@/lib/validation";
 import { writeNotification } from "@/lib/notifications";
+import { calculateShippingFee } from "@/lib/shipping";
 import { z } from "zod";
 
 const createOrderSchema = z.object({
@@ -96,14 +97,20 @@ export async function POST(request: NextRequest) {
       const orderRef = adminDb.collection("orders").doc();
       const now = FieldValue.serverTimestamp();
 
+      const shippingFee = calculateShippingFee(
+        body.shippingAddress.province,
+        subtotal
+      );
+      const totalAmount = subtotal + shippingFee;
+
       tx.set(orderRef, {
         orderCode,
         userId: authResult.uid,
         items: orderItems,
         shippingAddress: body.shippingAddress,
         subtotal,
-        shippingFee: 0,
-        totalAmount: subtotal,
+        shippingFee,
+        totalAmount,
         paymentMethod: body.paymentMethod,
         paymentStatus: "pending",
         orderStatus: "pending",
@@ -117,7 +124,7 @@ export async function POST(request: NextRequest) {
           userId: authResult.uid,
           type: "order_placed",
           title: `Order ${orderCode} placed`,
-          message: `Your order for ${orderItems.length} item(s) totalling ${subtotal.toLocaleString("vi-VN")} VND has been received.`,
+          message: `Your order for ${orderItems.length} item(s) totalling ${totalAmount.toLocaleString("vi-VN")} VND has been received.`,
           orderId: orderRef.id,
           orderCode,
         },
@@ -130,14 +137,14 @@ export async function POST(request: NextRequest) {
           userId: "admin",
           type: "new_order",
           title: `New order ${orderCode}`,
-          message: `A new order (${orderItems.length} item(s), ${subtotal.toLocaleString("vi-VN")} VND) has been placed.`,
+          message: `A new order (${orderItems.length} item(s), ${totalAmount.toLocaleString("vi-VN")} VND) has been placed.`,
           orderId: orderRef.id,
           orderCode,
         },
         tx
       );
 
-      return { orderId: orderRef.id, orderCode, subtotal, totalAmount: subtotal };
+      return { orderId: orderRef.id, orderCode, subtotal, shippingFee, totalAmount };
     });
 
     return NextResponse.json(result, { status: 201 });
