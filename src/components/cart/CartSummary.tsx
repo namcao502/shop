@@ -28,7 +28,6 @@ export function CartSummary({ subtotal, itemCount }: CartSummaryProps) {
           <span>{t("cart.total")}</span>
           <span className="text-amber-700">{formatPrice(subtotal, fmtLocale)}</span>
         </div>
-        <p className="mt-1 text-xs text-gray-500">{t("cart.shippingNote")}</p>
       </div>
       <Link href="/checkout">
         <Button className="mt-4 w-full" size="lg" disabled={itemCount === 0}>
