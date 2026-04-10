@@ -141,8 +141,10 @@ const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
 const shippingFee: number | null = address.province
   ? calculateShippingFee(address.province, subtotal)
   : null;
-const totalAmount = subtotal + (shippingFee ?? 0);
+const checkoutTotal = subtotal + (shippingFee ?? 0);
 ```
+
+Note: named `checkoutTotal` (not `totalAmount`) to avoid shadowing the `totalAmount` destructured from the API response inside `handleSubmit`.
 
 - [ ] **Step 2: Replace the order summary total line**
 
@@ -174,7 +176,7 @@ Replace it with:
             )}
             <div className="flex justify-between border-t pt-1 text-base font-bold text-amber-700">
               <span>{t("order.total")}</span>
-              <span>{formatPrice(totalAmount, fmtLocale)}</span>
+              <span>{formatPrice(checkoutTotal, fmtLocale)}</span>
             </div>
           </div>
 ```
@@ -385,4 +387,5 @@ git commit -m "chore: remove stale shipping note from cart summary"
 **Type consistency:**
 - `calculateShippingFee(provinceCode: string, subtotal: number): number` -- used identically in Task 3 (checkout page) and Task 4 (API route).
 - `shippingFee: number | null` on the client (null = province not selected), `shippingFee: number` on the server (province is always present after validation). No conflict.
-- `totalAmount` defined and returned in Task 4's transaction return matches the existing `{ orderId, orderCode, totalAmount }` destructure in checkout page line 147.
+- Component-level display variable renamed to `checkoutTotal` to avoid shadowing `totalAmount` destructured inside `handleSubmit` from the API response.
+- `totalAmount` returned from Task 4's transaction return matches the existing `{ orderId, orderCode, totalAmount }` destructure in checkout page `handleSubmit`.
