@@ -46,7 +46,7 @@ export const vi: Record<TranslationKey, string> = {
   "checkout.viewMyOrders": "Xem đơn hàng của tôi",
   "checkout.orderCreatedPayLater": "Đơn hàng đã được tạo nhưng không thể khởi tạo thanh toán.",
   "checkout.goToOrder": "Đến đơn hàng để thanh toán.",
-  "checkout.shippingFree": "Mien phi",
+  "checkout.shippingFree": "Miễn phí",
   "shipping.title": "Địa chỉ giao hàng",
   "shipping.fullName": "Họ và tên",
   "shipping.phone": "Số điện thoại",
