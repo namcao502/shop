@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { adminDb } from "@/lib/firebase/admin";
 import { verifyAuth } from "@/lib/verify-admin";
 import crypto from "crypto";
 
@@ -8,14 +9,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { orderId, orderCode, amount } = await request.json();
+  const { orderId, orderCode } = await request.json();
 
-  if (!orderId || !orderCode || !amount) {
+  if (!orderId || !orderCode) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 }
     );
   }
+
+  // Fetch authoritative amount from Firestore -- never trust client-supplied amount
+  const orderSnap = await adminDb.collection("orders").doc(orderId).get();
+  if (!orderSnap.exists) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+  const orderData = orderSnap.data()!;
+  if (orderData.userId !== authResult.uid) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const amount: number = orderData.totalAmount;
 
   const partnerCode = process.env.MOMO_PARTNER_CODE!;
   const accessKey = process.env.MOMO_ACCESS_KEY!;

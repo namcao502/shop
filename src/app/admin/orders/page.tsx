@@ -6,9 +6,6 @@ import {
   getDocs,
   query,
   orderBy,
-  doc,
-  updateDoc,
-  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { Badge } from "@/components/ui/Badge";
@@ -26,6 +23,7 @@ export default function AdminOrdersPage() {
   const confirm = useConfirm();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     const snap = await getDocs(
@@ -50,6 +48,7 @@ export default function AdminOrdersPage() {
   }, []);
 
   const callOrderApi = async (orderId: string, body: Record<string, unknown>) => {
+    setActionError(null);
     const token = await getIdToken();
     if (!token) return;
     const res = await fetch(`/api/orders/${orderId}`, {
@@ -61,8 +60,9 @@ export default function AdminOrdersPage() {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      const data = await res.json();
-      console.error("Order API error", data);
+      const data = await res.json().catch(() => ({}));
+      setActionError(data.error ?? "Action failed");
+      return;
     }
     await fetchOrders();
   };
@@ -70,31 +70,19 @@ export default function AdminOrdersPage() {
   const handleUpdatePayment = async (orderId: string, status: PaymentStatus) => {
     if (status === "paid") {
       await callOrderApi(orderId, { action: "confirm_payment" });
-    } else {
-      // Other payment status changes not covered by API -- update directly
-      await updateDoc(doc(db, "orders", orderId), {
-        paymentStatus: status,
-        updatedAt: serverTimestamp(),
-      });
-      await fetchOrders();
     }
+    // Other payment status transitions are not supported via the admin UI
   };
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
     const actionMap: Partial<Record<OrderStatus, string>> = {
       shipping: "ship",
       delivered: "deliver",
+      cancelled: "cancel",
     };
     const action = actionMap[status];
     if (action) {
       await callOrderApi(orderId, { action });
-    } else {
-      // Fallback for any status without an API action
-      await updateDoc(doc(db, "orders", orderId), {
-        orderStatus: status,
-        updatedAt: serverTimestamp(),
-      });
-      await fetchOrders();
     }
   };
 
@@ -114,6 +102,10 @@ export default function AdminOrdersPage() {
   return (
     <div>
       <h1 className="mb-4 text-2xl font-bold text-gray-900">{t("admin.orders")}</h1>
+
+      {actionError && (
+        <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{actionError}</p>
+      )}
 
       <div className="space-y-3">
         {orders.map((order) => (

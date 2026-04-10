@@ -51,6 +51,8 @@ export type TranslationKey =
   | "checkout.processing"
   | "checkout.somethingWentWrong"
   | "checkout.viewMyOrders"
+  | "checkout.orderCreatedPayLater"
+  | "checkout.goToOrder"
   // shipping form
   | "shipping.title"
   | "shipping.fullName"
@@ -106,6 +108,11 @@ export type TranslationKey =
   | "order.deleteSuccess"
   | "order.addressUpdated"
   | "order.save"
+  | "order.pendingPayment"
+  | "order.showQR"
+  | "order.payWithMomo"
+  | "order.loadingQR"
+  | "order.momoRedirecting"
   // order timeline
   | "timeline.orderPlaced"
   | "timeline.confirmed"

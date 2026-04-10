@@ -208,8 +208,14 @@ export async function PATCH(
     return NextResponse.json({ success: true });
   }
 
-  // --- CONFIRM PAYMENT (admin: VietQR manual confirmation) ---
+  // --- CONFIRM PAYMENT (admin: VietQR manual confirmation only) ---
   if (body.action === "confirm_payment") {
+    if (order.paymentMethod === "momo" && order.paymentStatus === "failed") {
+      return NextResponse.json(
+        { error: "Cannot manually confirm a failed MoMo payment" },
+        { status: 400 }
+      );
+    }
     if (order.paymentStatus === "paid") {
       return NextResponse.json({ error: "Payment already confirmed" }, { status: 400 });
     }

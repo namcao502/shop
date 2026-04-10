@@ -57,7 +57,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
 
   // Desktop: vertical sidebar
   return (
-    <aside className="w-56 border-r border-stone-100/90 bg-white/75 backdrop-blur-md">
+    <aside className="flex h-full w-56 flex-col border-r border-stone-100 bg-white">
       <div className="p-4">
         <h2 className="text-xs font-bold uppercase tracking-widest text-stone-400">{t("admin.title")}</h2>
       </div>

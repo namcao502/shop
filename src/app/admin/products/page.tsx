@@ -6,12 +6,9 @@ import {
   getDocs,
   query,
   orderBy,
-  doc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { useAuth } from "@/lib/firebase/auth-context";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -22,12 +19,14 @@ import type { Product, Category } from "@/lib/types";
 
 export default function AdminProductsPage() {
   const { locale, t } = useLocale();
+  const { getIdToken } = useAuth();
   const confirm = useConfirm();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const fetchData = async () => {
     const [prodSnap, catSnap] = await Promise.all([
@@ -49,11 +48,24 @@ export default function AdminProductsPage() {
   }, []);
 
   const handleSave = async (data: Omit<Product, "id">) => {
-    if (editing) {
-      await updateDoc(doc(db, "products", editing.id), { ...data });
-    } else {
-      const ref = doc(collection(db, "products"));
-      await setDoc(ref, { ...data });
+    setSaveError(null);
+    const token = await getIdToken();
+    const isEdit = !!editing;
+    const res = await fetch(
+      isEdit ? `/api/products/${editing!.id}` : "/api/products",
+      {
+        method: isEdit ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      setSaveError(json.error ?? "Failed to save product");
+      return;
     }
     setEditing(null);
     setCreating(false);
@@ -62,7 +74,16 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!await confirm({ title: t("admin.deleteTitle"), description: t("admin.deleteConfirm") })) return;
-    await deleteDoc(doc(db, "products", id));
+    const token = await getIdToken();
+    const res = await fetch(`/api/products/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok && res.status !== 204) {
+      const json = await res.json().catch(() => ({}));
+      alert(json.error ?? "Failed to delete product");
+      return;
+    }
     await fetchData();
   };
 
@@ -80,11 +101,15 @@ export default function AdminProductsPage() {
         <h1 className="mb-4 text-2xl font-bold text-gray-900">
           {editing ? t("admin.editProduct") : t("admin.newProduct")}
         </h1>
+        {saveError && (
+          <p className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-600">{saveError}</p>
+        )}
         <ProductForm
           product={editing ?? undefined}
           categories={categories}
           onSave={handleSave}
           onCancel={() => {
+            setSaveError(null);
             setCreating(false);
             setEditing(null);
           }}

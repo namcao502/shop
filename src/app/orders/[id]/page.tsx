@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/lib/firebase/auth-context";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
 import { ShippingForm } from "@/components/checkout/ShippingForm";
+import { QRDisplay } from "@/components/checkout/QRDisplay";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
@@ -29,10 +30,12 @@ export default function OrderDetailPage() {
   const [saving, setSaving] = useState(false);
   const [addressFormOpen, setAddressFormOpen] = useState(false);
   const [draftAddress, setDraftAddress] = useState<ShippingAddress | null>(null);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
 
-  async function fetchOrder() {
-    try {
-      const snap = await getDoc(doc(db, "orders", params.id as string));
+  useEffect(() => {
+    const orderId = params.id as string;
+    const unsubscribe = onSnapshot(doc(db, "orders", orderId), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         setOrder({
@@ -42,13 +45,9 @@ export default function OrderDetailPage() {
           updatedAt: data.updatedAt?.toDate() ?? new Date(),
         } as Order);
       }
-    } finally {
       setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchOrder();
+    });
+    return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -78,7 +77,6 @@ export default function OrderDetailPage() {
         setActionError(data.error ?? "Something went wrong");
       } else {
         setSuccessMessage(t("order.cancelSuccess"));
-        await fetchOrder();
       }
     } finally {
       setSaving(false);
@@ -106,7 +104,6 @@ export default function OrderDetailPage() {
         setAddressFormOpen(false);
         setDraftAddress(null);
         setSuccessMessage(t("order.addressUpdated"));
-        await fetchOrder();
       }
     } finally {
       setSaving(false);
@@ -141,6 +138,54 @@ export default function OrderDetailPage() {
     setAddressFormOpen(true);
   }
 
+  async function handleShowQR() {
+    if (!order) return;
+    setQrLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/vietqr", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: await authHeader(),
+        },
+        body: JSON.stringify({ amount: order.totalAmount, orderCode: order.orderCode }),
+      });
+      if (!res.ok) throw new Error("Failed to generate QR code");
+      const { qrUrl: url } = await res.json();
+      setQrUrl(url);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setQrLoading(false);
+    }
+  }
+
+  async function handlePayWithMomo() {
+    if (!order) return;
+    setQrLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/momo/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: await authHeader(),
+        },
+        body: JSON.stringify({ orderId: order.id, orderCode: order.orderCode }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to create MoMo payment");
+      }
+      const { payUrl } = await res.json();
+      window.location.href = payUrl;
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Something went wrong");
+      setQrLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
@@ -163,6 +208,8 @@ export default function OrderDetailPage() {
   const showCancel = order.orderStatus === "pending";
   const showUpdateAddress = order.orderStatus === "pending" || order.orderStatus === "confirmed";
   const showDelete = order.orderStatus === "cancelled";
+  const showPayment =
+    order.paymentStatus === "pending" && order.orderStatus === "pending";
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -197,6 +244,39 @@ export default function OrderDetailPage() {
           </span>
         </div>
       </div>
+
+      {/* Payment section -- shown when order is awaiting payment */}
+      {showPayment && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="mb-3 text-sm font-medium text-amber-800">
+            {t("order.pendingPayment")}
+          </p>
+          {order.paymentMethod === "vietqr" && !qrUrl && (
+            <button
+              onClick={handleShowQR}
+              disabled={qrLoading}
+              className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              {qrLoading ? t("order.loadingQR") : t("order.showQR")}
+            </button>
+          )}
+          {order.paymentMethod === "vietqr" && qrUrl && (
+            <QRDisplay qrUrl={qrUrl} orderCode={order.orderCode} amount={order.totalAmount} />
+          )}
+          {order.paymentMethod === "momo" && (
+            <button
+              onClick={handlePayWithMomo}
+              disabled={qrLoading}
+              className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-medium text-white hover:bg-pink-700 disabled:opacity-50"
+            >
+              {qrLoading ? t("order.momoRedirecting") : t("order.payWithMomo")}
+            </button>
+          )}
+          {actionError && (
+            <p className="mt-2 text-sm text-red-600">{actionError}</p>
+          )}
+        </div>
+      )}
 
       {/* Action bar */}
       {(showCancel || showUpdateAddress || showDelete) && (

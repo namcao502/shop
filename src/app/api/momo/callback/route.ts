@@ -18,6 +18,8 @@ export async function POST(request: NextRequest) {
     resultCode,
     message,
     extraData,
+    payType,
+    responseTime,
     signature,
   } = body;
 
@@ -25,7 +27,7 @@ export async function POST(request: NextRequest) {
   const secretKey = process.env.MOMO_SECRET_KEY!;
   const accessKey = process.env.MOMO_ACCESS_KEY!;
 
-  const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderCode}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${body.payType}&requestId=${requestId}&responseTime=${body.responseTime}&resultCode=${resultCode}&transId=${transId}`;
+  const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderCode}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType ?? ""}&requestId=${requestId}&responseTime=${responseTime ?? ""}&resultCode=${resultCode}&transId=${transId}`;
 
   const expectedSignature = crypto
     .createHmac("sha256", secretKey)
@@ -53,51 +55,61 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  const orderDoc = ordersSnap.docs[0];
-
-  // Idempotent: skip if already paid
-  if (orderDoc.data().paymentStatus === "paid") {
-    return NextResponse.json({ message: "Already processed" });
-  }
+  const orderRef = ordersSnap.docs[0].ref;
 
   if (resultCode === 0) {
-    // Payment successful
-    await orderDoc.ref.update({
-      paymentStatus: "paid",
-      orderStatus: "confirmed",
-      updatedAt: FieldValue.serverTimestamp(),
-    });
+    // Wrap idempotency check + update + notifications in a transaction to
+    // prevent duplicate processing on concurrent MoMo retries
+    await adminDb.runTransaction(async (tx) => {
+      const freshSnap = await tx.get(orderRef);
+      if (!freshSnap.exists) throw new Error("Order not found");
 
-    const order = orderDoc.data();
+      // Idempotent: skip if already paid
+      if (freshSnap.data()!.paymentStatus === "paid") return;
 
-    // Customer: payment confirmed
-    writeNotification({
-      userId: order.userId,
-      type: "payment_confirmed",
-      title: `Payment confirmed for ${orderCode}`,
-      message: "Your MoMo payment has been verified. Your order is being prepared.",
-      orderId: orderDoc.id,
-      orderCode,
-    });
+      const order = freshSnap.data()!;
 
-    // Admin: payment received
-    writeNotification({
-      userId: "admin",
-      type: "payment_received",
-      title: `Payment received for ${orderCode}`,
-      message: `MoMo payment confirmed for order ${orderCode}.`,
-      orderId: orderDoc.id,
-      orderCode,
+      tx.update(orderRef, {
+        paymentStatus: "paid",
+        orderStatus: "confirmed",
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      // Customer: payment confirmed
+      writeNotification(
+        {
+          userId: order.userId,
+          type: "payment_confirmed",
+          title: `Payment confirmed for ${orderCode}`,
+          message: "Your MoMo payment has been verified. Your order is being prepared.",
+          orderId: orderRef.id,
+          orderCode,
+        },
+        tx
+      );
+
+      // Admin: payment received
+      writeNotification(
+        {
+          userId: "admin",
+          type: "payment_received",
+          title: `Payment received for ${orderCode}`,
+          message: `MoMo payment confirmed for order ${orderCode}.`,
+          orderId: orderRef.id,
+          orderCode,
+        },
+        tx
+      );
     });
   } else {
-    // Payment failed — existing logic unchanged
+    // Payment failed
     console.error("MoMo payment failed", {
       orderCode,
       resultCode,
       message,
       fullPayload: body,
     });
-    await orderDoc.ref.update({
+    await orderRef.update({
       paymentStatus: "failed",
       updatedAt: FieldValue.serverTimestamp(),
     });

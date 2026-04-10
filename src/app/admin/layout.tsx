@@ -34,7 +34,7 @@ export default function AdminLayout({
   return (
     <div className="flex h-[calc(100vh-4rem)]">
       {/* Sidebar — desktop only */}
-      <div className="hidden md:block">
+      <div className="hidden h-full md:block">
         <AdminSidebar />
       </div>
       <div className="flex flex-1 flex-col overflow-hidden">

@@ -35,6 +35,9 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("vietqr");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Tracks the order ID if it was created but payment initiation failed,
+  // so the user can navigate to the order and pay from there.
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
   const [qrData, setQrData] = useState<{
     qrUrl: string;
     orderCode: string;
@@ -44,14 +47,17 @@ export default function CheckoutPage() {
   // Validate cart quantities against current stock on page load
   useEffect(() => {
     async function validateStock() {
+      const snaps = await Promise.all(
+        items.map((item) => getDoc(doc(db, "products", item.productId)))
+      );
       let anyAdjusted = false;
-      for (const item of items) {
-        const snap = await getDoc(doc(db, "products", item.productId));
+      for (let i = 0; i < items.length; i++) {
+        const snap = snaps[i];
         if (!snap.exists()) continue;
         const stock = snap.data().stock ?? 0;
-        if (item.qty > stock) {
+        if (items[i].qty > stock) {
           anyAdjusted = true;
-          updateQty(item.productId, Math.max(stock, 0));
+          updateQty(items[i].productId, Math.max(stock, 0));
         }
       }
       setStockAdjusted(anyAdjusted);
@@ -140,6 +146,10 @@ export default function CheckoutPage() {
 
       const { orderId, orderCode, totalAmount } = await orderRes.json();
 
+      // Order now exists in Firestore. Track its ID so that if payment
+      // initiation fails the user gets a link to the order page to retry.
+      setCreatedOrderId(orderId);
+
       // 2. Handle payment
       if (paymentMethod === "vietqr") {
         const qrRes = await fetch("/api/vietqr", {
@@ -154,8 +164,9 @@ export default function CheckoutPage() {
         if (!qrRes.ok) throw new Error("Failed to generate QR code");
 
         const qr = await qrRes.json();
-        setQrData({ qrUrl: qr.qrUrl, orderCode, amount: totalAmount });
         clear();
+        setCreatedOrderId(null);
+        setQrData({ qrUrl: qr.qrUrl, orderCode, amount: totalAmount });
       } else {
         // MoMo
         const momoRes = await fetch("/api/momo/create", {
@@ -164,13 +175,17 @@ export default function CheckoutPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ orderId, orderCode, amount: totalAmount }),
+          body: JSON.stringify({ orderId, orderCode }),
         });
 
-        if (!momoRes.ok) throw new Error("Failed to create MoMo payment");
+        if (!momoRes.ok) {
+          const data = await momoRes.json().catch(() => ({}));
+          throw new Error(data.error ?? "Failed to create MoMo payment");
+        }
 
         const { payUrl } = await momoRes.json();
         clear();
+        setCreatedOrderId(null);
         window.location.href = payUrl;
       }
     } catch (err: unknown) {
@@ -233,9 +248,20 @@ export default function CheckoutPage() {
         <PaymentSelector selected={paymentMethod} onSelect={setPaymentMethod} />
 
         {error && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-            {error}
-          </p>
+          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            <p>{error}</p>
+            {createdOrderId && (
+              <p className="mt-2">
+                {t("checkout.orderCreatedPayLater")}{" "}
+                <a
+                  href={`/orders/${createdOrderId}`}
+                  className="font-medium underline"
+                >
+                  {t("checkout.goToOrder")}
+                </a>
+              </p>
+            )}
+          </div>
         )}
 
         <Button

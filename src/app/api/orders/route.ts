@@ -3,15 +3,24 @@ import { adminDb } from "@/lib/firebase/admin";
 import { verifyAuth } from "@/lib/verify-admin";
 import { generateOrderCode, orderCounterRef } from "@/lib/order-code";
 import { FieldValue } from "firebase-admin/firestore";
-import type { ShippingAddress, PaymentMethod, OrderItem } from "@/lib/types";
+import type { OrderItem } from "@/lib/types";
 import { shippingAddressSchema } from "@/lib/validation";
 import { writeNotification } from "@/lib/notifications";
+import { z } from "zod";
 
-interface CreateOrderBody {
-  items: { productId: string; qty: number }[];
-  shippingAddress: ShippingAddress;
-  paymentMethod: PaymentMethod;
-}
+const createOrderSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        qty: z.number().int().min(1).max(100),
+      })
+    )
+    .min(1)
+    .max(20),
+  shippingAddress: shippingAddressSchema,
+  paymentMethod: z.enum(["vietqr", "momo"]),
+});
 
 export async function POST(request: NextRequest) {
   const authResult = await verifyAuth(request.headers.get("Authorization"));
@@ -19,29 +28,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body: CreateOrderBody = await request.json();
-
-  if (!body.items?.length || !body.shippingAddress || !body.paymentMethod) {
+  const raw = await request.json();
+  const parsed = createOrderSchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing required fields" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid request" },
       { status: 400 }
     );
   }
 
-  if (!["vietqr", "momo"].includes(body.paymentMethod)) {
-    return NextResponse.json(
-      { error: "Invalid payment method" },
-      { status: 400 }
-    );
-  }
-
-  const addressValidation = shippingAddressSchema.safeParse(body.shippingAddress);
-  if (!addressValidation.success) {
-    return NextResponse.json(
-      { error: "Invalid shipping address" },
-      { status: 400 }
-    );
-  }
+  const body = parsed.data;
 
   try {
     const result = await adminDb.runTransaction(async (tx) => {
@@ -104,7 +100,7 @@ export async function POST(request: NextRequest) {
         orderCode,
         userId: authResult.uid,
         items: orderItems,
-        shippingAddress: addressValidation.data,
+        shippingAddress: body.shippingAddress,
         subtotal,
         shippingFee: 0,
         totalAmount: subtotal,

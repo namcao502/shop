@@ -19,14 +19,14 @@ export function saveCart(items: CartItem[]): void {
 
 export function addToCart(item: CartItem): CartItem[] {
   const cart = getCart();
-  const existing = cart.find((i) => i.productId === item.productId);
-  if (existing) {
-    existing.qty += item.qty;
-  } else {
-    cart.push({ ...item });
-  }
-  saveCart(cart);
-  return cart;
+  const exists = cart.some((i) => i.productId === item.productId);
+  const updated = exists
+    ? cart.map((i) =>
+        i.productId === item.productId ? { ...i, qty: i.qty + item.qty } : i
+      )
+    : [...cart, { ...item }];
+  saveCart(updated);
+  return updated;
 }
 
 export function updateCartItemQty(
@@ -39,12 +39,11 @@ export function updateCartItemQty(
     saveCart(filtered);
     return filtered;
   }
-  const item = cart.find((i) => i.productId === productId);
-  if (item) {
-    item.qty = qty;
-  }
-  saveCart(cart);
-  return cart;
+  const updated = cart.map((i) =>
+    i.productId === productId ? { ...i, qty } : i
+  );
+  saveCart(updated);
+  return updated;
 }
 
 export function removeFromCart(productId: string): CartItem[] {

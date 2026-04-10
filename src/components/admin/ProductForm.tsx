@@ -29,6 +29,7 @@ export function ProductForm({
   const [isPublished, setIsPublished] = useState(product?.isPublished ?? true);
   const [images, setImages] = useState<string[]>(product?.images ?? []);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { t } = useLocale();
 
   const handleNameChange = (value: string) => {
@@ -43,14 +44,30 @@ export function ProductForm({
     }
   };
 
+  const validate = (): boolean => {
+    const next: Record<string, string> = {};
+    if (!name.trim()) next.name = "Name is required";
+    if (!slug.trim()) next.slug = "Slug is required";
+    else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))
+      next.slug = "Slug must be lowercase alphanumeric with hyphens";
+    const parsedPrice = parseInt(price, 10);
+    if (!price || isNaN(parsedPrice) || parsedPrice < 1) next.price = "Price must be at least 1";
+    const parsedStock = parseInt(stock, 10);
+    if (stock === "" || isNaN(parsedStock) || parsedStock < 0) next.stock = "Stock cannot be negative";
+    if (!categoryId) next.categoryId = "Category is required";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
   const handleSubmit = async () => {
+    if (!validate()) return;
     setSaving(true);
     await onSave({
       name,
       slug,
       description,
-      price: parseInt(price, 10) || 0,
-      stock: parseInt(stock, 10) || 0,
+      price: parseInt(price, 10),
+      stock: parseInt(stock, 10),
       categoryId,
       isPublished,
       images,
@@ -61,16 +78,22 @@ export function ProductForm({
   return (
     <div className="space-y-4 rounded-lg border bg-white p-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input
-          label={t("form.productName")}
-          value={name}
-          onChange={(e) => handleNameChange(e.target.value)}
-        />
-        <Input
-          label={t("form.slug")}
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-        />
+        <div>
+          <Input
+            label={t("form.productName")}
+            value={name}
+            onChange={(e) => handleNameChange(e.target.value)}
+          />
+          {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+        </div>
+        <div>
+          <Input
+            label={t("form.slug")}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+          />
+          {errors.slug && <p className="mt-1 text-xs text-red-600">{errors.slug}</p>}
+        </div>
       </div>
       <div>
         <label className="text-sm font-medium text-gray-700">{t("form.description")}</label>
@@ -82,18 +105,24 @@ export function ProductForm({
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Input
-          label={t("form.price")}
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-        <Input
-          label={t("form.stock")}
-          type="number"
-          value={stock}
-          onChange={(e) => setStock(e.target.value)}
-        />
+        <div>
+          <Input
+            label={t("form.price")}
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+          {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
+        </div>
+        <div>
+          <Input
+            label={t("form.stock")}
+            type="number"
+            value={stock}
+            onChange={(e) => setStock(e.target.value)}
+          />
+          {errors.stock && <p className="mt-1 text-xs text-red-600">{errors.stock}</p>}
+        </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-700">{t("form.category")}</label>
           <select
@@ -108,6 +137,7 @@ export function ProductForm({
               </option>
             ))}
           </select>
+          {errors.categoryId && <p className="mt-1 text-xs text-red-600">{errors.categoryId}</p>}
         </div>
       </div>
 

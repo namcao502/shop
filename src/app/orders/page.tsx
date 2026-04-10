@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
   query,
   where,
   orderBy,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/lib/firebase/auth-context";
@@ -24,20 +24,18 @@ export default function OrdersPage() {
   useEffect(() => {
     if (!user) return;
 
-    async function fetchOrders() {
-      const snap = await getDocs(
-        query(
-          collection(db, "orders"),
-          where("userId", "==", user!.id),
-          orderBy("createdAt", "desc")
-        )
-      );
+    const q = query(
+      collection(db, "orders"),
+      where("userId", "==", user.id),
+      orderBy("createdAt", "desc")
+    );
 
+    const unsubscribe = onSnapshot(q, (snap) => {
       setOrders(
-        snap.docs.map((doc) => {
-          const data = doc.data();
+        snap.docs.map((d) => {
+          const data = d.data();
           return {
-            id: doc.id,
+            id: d.id,
             ...data,
             createdAt: data.createdAt?.toDate() ?? new Date(),
             updatedAt: data.updatedAt?.toDate() ?? new Date(),
@@ -45,8 +43,9 @@ export default function OrdersPage() {
         })
       );
       setLoading(false);
-    }
-    fetchOrders();
+    });
+
+    return unsubscribe;
   }, [user]);
 
   if (authLoading) {
