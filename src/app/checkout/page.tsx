@@ -165,7 +165,7 @@ export default function CheckoutPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ amount: totalAmount, orderCode }),
+          body: JSON.stringify({ orderId, orderCode }),
         });
 
         if (!qrRes.ok) throw new Error("Failed to generate QR code");

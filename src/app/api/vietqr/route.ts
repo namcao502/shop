@@ -1,4 +1,6 @@
+// src/app/api/vietqr/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { adminDb } from "@/lib/firebase/admin";
 import { verifyAuth } from "@/lib/verify-admin";
 
 export async function POST(request: NextRequest) {
@@ -7,20 +9,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { amount, orderCode } = await request.json();
+  const body = await request.json();
+  const { orderId, orderCode } = body;
 
-  if (!amount || !orderCode) {
+  if (!orderId || !orderCode) {
     return NextResponse.json(
-      { error: "Missing amount or orderCode" },
+      { error: "Missing orderId or orderCode" },
       { status: 400 }
     );
   }
 
+  const orderSnap = await adminDb.collection("orders").doc(orderId).get();
+  if (!orderSnap.exists) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  const orderData = orderSnap.data()!;
+
+  if (orderData.userId !== authResult.uid) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (orderData.orderCode !== orderCode) {
+    return NextResponse.json({ error: "Order code mismatch" }, { status: 400 });
+  }
+
+  const amount: number = orderData.totalAmount;
   const bankId = process.env.VIETQR_BANK_ID;
   const accountNumber = process.env.VIETQR_ACCOUNT_NUMBER;
   const accountName = process.env.VIETQR_ACCOUNT_NAME;
 
-  // vietqr.io image API: generates a QR code image URL
   const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(accountName ?? "")}`;
 
   return NextResponse.json({ qrUrl, orderCode, amount });
