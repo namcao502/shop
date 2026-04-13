@@ -21,6 +21,10 @@ type PatchBody = z.infer<typeof patchBodySchema>;
 const ADMIN_ONLY_ACTIONS = ["confirm_payment", "ship", "deliver"] as const;
 type AdminAction = (typeof ADMIN_ONLY_ACTIONS)[number];
 
+function httpError(message: string, status: number): Error & { status: number } {
+  return Object.assign(new Error(message), { status });
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -170,9 +174,10 @@ export async function PATCH(
         };
 
         if (newProvince !== oldProvince) {
-          const newShippingFee = calculateShippingFee(newProvince, freshOrder.subtotal as number);
+          const subtotal = typeof freshOrder.subtotal === "number" ? freshOrder.subtotal : 0;
+          const newShippingFee = calculateShippingFee(newProvince, subtotal);
           updatePayload.shippingFee = newShippingFee;
-          updatePayload.totalAmount = (freshOrder.subtotal as number) + newShippingFee;
+          updatePayload.totalAmount = subtotal + newShippingFee;
         }
 
         tx.update(orderRef, updatePayload);
@@ -370,17 +375,17 @@ export async function DELETE(
       const orderSnap = await tx.get(orderRef);
 
       if (!orderSnap.exists) {
-        throw Object.assign(new Error("Order not found"), { status: 404 });
+        throw httpError("Order not found", 404);
       }
 
       const order = orderSnap.data()!;
 
       if (order.userId !== authResult.uid) {
-        throw Object.assign(new Error("Forbidden"), { status: 403 });
+        throw httpError("Forbidden", 403);
       }
 
       if (order.orderStatus !== "cancelled") {
-        throw Object.assign(new Error("Only cancelled orders can be deleted"), { status: 400 });
+        throw httpError("Only cancelled orders can be deleted", 400);
       }
 
       tx.delete(orderRef);
