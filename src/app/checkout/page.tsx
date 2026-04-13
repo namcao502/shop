@@ -126,6 +126,7 @@ export default function CheckoutPage() {
     }
     setAddressErrors({});
 
+    setCreatedOrderId(null);
     setSubmitting(true);
     setError(null);
 
