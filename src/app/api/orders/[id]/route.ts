@@ -4,49 +4,50 @@ import { adminDb } from "@/lib/firebase/admin";
 import { verifyAuth } from "@/lib/verify-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { shippingAddressSchema } from "@/lib/validation";
-import type { ShippingAddress } from "@/lib/types";
 import { writeNotification } from "@/lib/notifications";
+import { calculateShippingFee } from "@/lib/shipping";
+import { z } from "zod";
 
-type CustomerAction = "cancel" | "update_address";
-type AdminAction = "confirm_payment" | "ship" | "deliver";
-type PatchAction = CustomerAction | AdminAction;
+const patchBodySchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("cancel") }),
+  z.object({ action: z.literal("update_address"), shippingAddress: shippingAddressSchema }),
+  z.object({ action: z.literal("confirm_payment") }),
+  z.object({ action: z.literal("ship") }),
+  z.object({ action: z.literal("deliver") }),
+]);
 
-interface PatchBody {
-  action: PatchAction;
-  shippingAddress?: ShippingAddress;
-}
+type PatchBody = z.infer<typeof patchBodySchema>;
 
-const VALID_ACTIONS: PatchAction[] = [
-  "cancel",
-  "update_address",
-  "confirm_payment",
-  "ship",
-  "deliver",
-];
-
-const ADMIN_ONLY_ACTIONS: AdminAction[] = ["confirm_payment", "ship", "deliver"];
+const ADMIN_ONLY_ACTIONS = ["confirm_payment", "ship", "deliver"] as const;
+type AdminAction = (typeof ADMIN_ONLY_ACTIONS)[number];
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await verifyAuth(request.headers.get("Authorization"));
+  const authResult = await verifyAuth(request.headers.get("Authorization"), { needsAdmin: true });
   if (!authResult) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
 
-  let body: PatchBody;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  if (!body.action || !VALID_ACTIONS.includes(body.action)) {
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  const parsedBody = patchBodySchema.safeParse(rawBody);
+  if (!parsedBody.success) {
+    return NextResponse.json(
+      { error: parsedBody.error.issues[0]?.message ?? "Invalid action" },
+      { status: 400 }
+    );
   }
+
+  const body = parsedBody.data;
 
   // Admin-only actions require isAdmin
   if (ADMIN_ONLY_ACTIONS.includes(body.action as AdminAction) && !authResult.isAdmin) {
@@ -151,14 +152,6 @@ export async function PATCH(
       );
     }
 
-    const validation = shippingAddressSchema.safeParse(body.shippingAddress);
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Invalid shipping address" },
-        { status: 400 }
-      );
-    }
-
     try {
       await adminDb.runTransaction(async (tx) => {
         const freshSnap = await tx.get(orderRef);
@@ -167,13 +160,24 @@ export async function PATCH(
           throw new Error("Address can only be updated for pending or confirmed orders");
         }
 
-        tx.update(orderRef, {
-          shippingAddress: validation.data,
+        const freshOrder = freshSnap.data()!;
+        const newProvince = body.shippingAddress.province;
+        const oldProvince = (freshOrder.shippingAddress as { province?: string })?.province;
+
+        const updatePayload: Record<string, unknown> = {
+          shippingAddress: body.shippingAddress,
           updatedAt: FieldValue.serverTimestamp(),
-        });
+        };
+
+        if (newProvince !== oldProvince) {
+          const newShippingFee = calculateShippingFee(newProvince, freshOrder.subtotal as number);
+          updatePayload.shippingFee = newShippingFee;
+          updatePayload.totalAmount = (freshOrder.subtotal as number) + newShippingFee;
+        }
+
+        tx.update(orderRef, updatePayload);
 
         if (authResult.isAdmin) {
-          // Admin updated the address -- notify customer
           writeNotification(
             {
               userId: order.userId,
@@ -186,7 +190,6 @@ export async function PATCH(
             tx
           );
         } else {
-          // Customer updated address -- notify admin
           writeNotification(
             {
               userId: "admin",
@@ -361,37 +364,46 @@ export async function DELETE(
 
   const { id } = await params;
   const orderRef = adminDb.collection("orders").doc(id);
-  const orderSnap = await orderRef.get();
 
-  if (!orderSnap.exists) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
-  }
+  try {
+    await adminDb.runTransaction(async (tx) => {
+      const orderSnap = await tx.get(orderRef);
 
-  const order = orderSnap.data()!;
+      if (!orderSnap.exists) {
+        throw Object.assign(new Error("Order not found"), { status: 404 });
+      }
 
-  // Intentionally customer-only: only the order owner can delete their own cancelled order record
-  if (order.userId !== authResult.uid) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+      const order = orderSnap.data()!;
 
-  if (order.orderStatus !== "cancelled") {
+      if (order.userId !== authResult.uid) {
+        throw Object.assign(new Error("Forbidden"), { status: 403 });
+      }
+
+      if (order.orderStatus !== "cancelled") {
+        throw Object.assign(new Error("Only cancelled orders can be deleted"), { status: 400 });
+      }
+
+      tx.delete(orderRef);
+
+      writeNotification(
+        {
+          userId: "admin",
+          type: "order_deleted",
+          title: `Order ${order.orderCode} deleted`,
+          message: `Customer deleted the record of cancelled order ${order.orderCode}.`,
+          orderId: null,
+          orderCode: order.orderCode,
+        },
+        tx
+      );
+    });
+  } catch (err: unknown) {
+    const e = err as Error & { status?: number };
     return NextResponse.json(
-      { error: "Only cancelled orders can be deleted" },
-      { status: 400 }
+      { error: e.message ?? "Failed to delete order" },
+      { status: e.status ?? 400 }
     );
   }
-
-  await orderRef.delete();
-
-  // Notify admin that a customer deleted their order record
-  writeNotification({
-    userId: "admin",
-    type: "order_deleted",
-    title: `Order ${order.orderCode} deleted`,
-    message: `Customer deleted the record of cancelled order ${order.orderCode}.`,
-    orderId: null,
-    orderCode: order.orderCode,
-  });
 
   return new NextResponse(null, { status: 204 });
 }
