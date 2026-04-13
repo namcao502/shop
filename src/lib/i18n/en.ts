@@ -196,6 +196,8 @@ export const en: Record<TranslationKey, string> = {
   "notification.address_update_requested.message": "Customer updated the shipping address.",
   "notification.payment_confirmed.title": "Payment confirmed for {orderCode}",
   "notification.payment_confirmed.message": "Your payment has been verified. Your order is being prepared.",
+  "notification.payment_failed.title": "Payment failed for {orderCode}",
+  "notification.payment_failed.message": "Your MoMo payment could not be processed. Please try again from your order page.",
   "notification.payment_received.title": "Payment received for {orderCode}",
   "notification.payment_received.message": "Payment received successfully.",
   "notification.order_shipped.title": "Order {orderCode} is on its way",

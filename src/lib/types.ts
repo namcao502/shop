@@ -76,6 +76,7 @@ export type NotificationType =
   | "order_delivered"
   | "order_cancelled"
   | "payment_confirmed"
+  | "payment_failed"
   | "address_updated"
   | "new_order"
   | "payment_received"

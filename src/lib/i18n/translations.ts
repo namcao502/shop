@@ -219,6 +219,8 @@ export type TranslationKey =
   | "notification.address_update_requested.message"
   | "notification.payment_confirmed.title"
   | "notification.payment_confirmed.message"
+  | "notification.payment_failed.title"
+  | "notification.payment_failed.message"
   | "notification.payment_received.title"
   | "notification.payment_received.message"
   | "notification.order_shipped.title"

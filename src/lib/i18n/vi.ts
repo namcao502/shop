@@ -196,6 +196,8 @@ export const vi: Record<TranslationKey, string> = {
   "notification.address_update_requested.message": "Khách hàng đã cập nhật địa chỉ giao hàng.",
   "notification.payment_confirmed.title": "Xác nhận thanh toán đơn {orderCode}",
   "notification.payment_confirmed.message": "Thanh toán đã được xác minh. Đơn hàng đang được chuẩn bị.",
+  "notification.payment_failed.title": "Thanh toán đơn {orderCode} thất bại",
+  "notification.payment_failed.message": "Thanh toán MoMo không thành công. Vui lòng thử lại từ trang đơn hàng của bạn.",
   "notification.payment_received.title": "Nhận thanh toán đơn {orderCode}",
   "notification.payment_received.message": "Đã nhận thanh toán thành công.",
   "notification.order_shipped.title": "Đơn hàng {orderCode} đang trên đường",
