@@ -14,12 +14,12 @@ const momoCallbackSchema = z.object({
   amount: z.number(),
   orderInfo: z.string(),
   orderType: z.string(),
-  transId: z.number(),
+  transId: z.coerce.string(),
   resultCode: z.number(),
   message: z.string(),
   extraData: z.string(),
   payType: z.string(),
-  responseTime: z.number(),
+  responseTime: z.coerce.string(),
   signature: z.string(),
 });
 
@@ -52,8 +52,10 @@ export async function POST(request: NextRequest) {
     signature,
   } = parsed.data;
 
-  // Recover orderCode from composite momoOrderId ("ORD0042-<requestId>").
-  // orderCode is "ORD" + digits (no hyphens), so the first segment is always orderCode.
+  // Extract orderCode from momoOrderId. Two possible formats:
+  // - Simple (current create/route.ts): "ORD0042" -- split gives ["ORD0042"], index 0 = "ORD0042"
+  // - Composite (after retry-safe update): "ORD0042-<requestId>" -- split gives ["ORD0042", ...], index 0 = "ORD0042"
+  // orderCode is always "ORD" + digits (no hyphens), so split("-")[0] recovers it safely in both cases.
   const orderCode = momoOrderId.split("-")[0];
 
   // Verify HMAC using validated (typed) values only -- no ?? "" fallbacks

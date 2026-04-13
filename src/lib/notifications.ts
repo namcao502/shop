@@ -15,7 +15,7 @@ interface NotificationInput {
 /**
  * Write a notification document.
  * Pass `tx` to include the write in an existing Firestore transaction.
- * Without `tx`, the write is fire-and-forget (used in MoMo callback).
+ * Without `tx`, the write is fire-and-forget.
  */
 export function writeNotification(
   data: NotificationInput,
