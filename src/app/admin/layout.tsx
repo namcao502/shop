@@ -4,7 +4,9 @@ import { useAuth } from "@/lib/firebase/auth-context";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+const AUTH_TIMEOUT_MS = 5000;
 
 export default function AdminLayout({
   children,
@@ -14,12 +16,24 @@ export default function AdminLayout({
   const { user, loading } = useAuth();
   const { t } = useLocale();
   const router = useRouter();
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loading) setTimedOut(true);
+    }, AUTH_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   useEffect(() => {
     if (!loading && (!user || !user.isAdmin)) {
       router.push("/");
     }
   }, [user, loading, router]);
+
+  if (timedOut || (!loading && !user?.isAdmin)) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -29,18 +43,12 @@ export default function AdminLayout({
     );
   }
 
-  if (!user?.isAdmin) {
-    return null;
-  }
-
   return (
     <div className="flex h-[calc(100vh-4rem)]">
-      {/* Sidebar — desktop only */}
       <div className="hidden h-full md:block">
         <AdminSidebar />
       </div>
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top tab bar — mobile only */}
         <AdminSidebar mobile />
         <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>
       </div>
