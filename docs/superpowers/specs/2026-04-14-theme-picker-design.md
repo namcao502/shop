@@ -43,8 +43,8 @@ One CSS variable -- `--theme-hue` (integer 0-360) -- drives two visual systems:
 2. **Accent color**: a new `.theme-accent` CSS utility class in `globals.css` applies `background: hsl(var(--theme-hue), 70%, 40%); color: white`. Applied to:
    - `Button` component primary variant
    - Cart item count badge in the header
-   - Notification unread count badge
    - Active notification left-border highlight in the `NotificationBell` popup
+   - (Notification unread count badge stays `bg-red-500` -- red is semantically correct for alerts)
 
 Other `amber-*` Tailwind usages (hover tints, subtle backgrounds, text links) are left as-is. They remain coherent because the page background tint shifts with the theme.
 
@@ -95,8 +95,11 @@ Other `amber-*` Tailwind usages (hover tints, subtle backgrounds, text links) ar
 - Active notification left-border: replace `border-l-amber-500` with `theme-accent-border`.
 - "Mark as read" link color: replace `text-amber-600` with `theme-accent-text`.
 
-**`src/app/layout.tsx` header badges**
-- Cart count badge and notification unread count badge: replace `bg-amber-600` with `theme-accent` class.
+**`src/components/layout/Header.tsx` (badges)**
+- Cart count badge: replace `bg-amber-600` with `theme-accent` class.
+
+**`src/components/layout/NotificationBell.tsx` (unread badge)**
+- Unread count badge: keep `bg-red-500` -- red is semantically correct for unread alert counts and should not follow the theme hue.
 
 ## Persistence
 
