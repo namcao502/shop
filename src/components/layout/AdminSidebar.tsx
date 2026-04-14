@@ -27,7 +27,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
   // Mobile: horizontal tab bar at top
   if (mobile) {
     return (
-      <div className="flex items-center gap-1 border-b border-stone-100 bg-white/90 px-3 py-2 md:hidden">
+      <div className="flex items-center gap-1 border-b border-stone-100 theme-header-bg px-3 py-2 md:hidden">
         {links.map((link) => {
           const isActive =
             link.href === "/admin"
@@ -39,7 +39,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
               href={link.href}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                 isActive
-                  ? "bg-amber-500/10 text-amber-800"
+                  ? "theme-active-bg theme-active-text"
                   : "text-stone-600 hover:bg-stone-50"
               }`}
             >
@@ -57,7 +57,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
 
   // Desktop: vertical sidebar
   return (
-    <aside className="flex h-full w-56 flex-col border-r border-stone-100 bg-white">
+    <aside className="flex h-full w-56 flex-col border-r border-stone-100 theme-sidebar-bg">
       <div className="p-4">
         <h2 className="text-xs font-bold uppercase tracking-widest text-stone-400">{t("admin.title")}</h2>
       </div>
@@ -73,7 +73,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
               href={link.href}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? "border-l-2 border-amber-500 bg-amber-500/10 text-amber-800"
+                  ? "border-l-2 theme-accent-border theme-active-bg theme-active-text"
                   : "border-l-2 border-transparent text-stone-600 hover:bg-stone-50"
               }`}
             >

@@ -30,7 +30,7 @@ export function Header() {
   const closeMobile = () => setMobileOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-stone-100/80 bg-white/90 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-b border-stone-100/80 theme-header-bg backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <Link href="/" className="text-xl font-bold text-stone-900 transition-colors hover:text-amber-700">
