@@ -64,20 +64,20 @@ body::before {
 
 /* Surface backgrounds -- header, footer, sidebar */
 .theme-header-bg {
-  background-color: hsl(var(--theme-hue) 50% 99% / 0.92);
+  background-color: hsl(var(--theme-hue), 70%, 93%);
 }
 .theme-footer-bg {
-  background-color: hsl(var(--theme-hue), 25%, 96%);
+  background-color: hsl(var(--theme-hue), 60%, 88%);
 }
 .theme-sidebar-bg {
-  background-color: hsl(var(--theme-hue), 20%, 99%);
+  background-color: hsl(var(--theme-hue), 55%, 92%);
 }
 /* Sidebar active item */
 .theme-active-bg {
-  background-color: hsl(var(--theme-hue), 70%, 93%);
+  background-color: hsl(var(--theme-hue), 70%, 82%);
 }
 .theme-active-text {
-  color: hsl(var(--theme-hue), 80%, 28%);
+  color: hsl(var(--theme-hue), 80%, 22%);
 }
 
 /* Hue slider styling */
