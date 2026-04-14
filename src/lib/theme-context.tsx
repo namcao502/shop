@@ -45,7 +45,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (rainbow) {
       intervalRef.current = setInterval(() => {
-        const next = (hueRef.current + 1) % 361;
+        const next = (hueRef.current + 1) % 360;
         hueRef.current = next;
         applyHue(next);
         setHueState(next);
@@ -66,6 +66,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [rainbow]);
 
   function setHue(h: number) {
+    if (rainbow) return;
     const clamped = Math.max(0, Math.min(360, h));
     setHueState(clamped);
     localStorage.setItem(LS_HUE, String(clamped));
