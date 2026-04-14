@@ -140,7 +140,7 @@ export function Header() {
             <Link href="/cart" onClick={closeMobile} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-stone-700 hover:bg-stone-50">
               {t("nav.cart")}
               {totalItems > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-600 text-xs text-white">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full theme-accent text-xs text-white">
                   {totalItems}
                 </span>
               )}
