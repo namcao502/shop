@@ -91,7 +91,7 @@ export function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="text-xs font-semibold text-amber-600 hover:text-amber-700"
+                className="text-xs font-semibold theme-accent-text hover:opacity-80"
               >
                 {t("notification.markAllRead")}
               </button>
@@ -110,7 +110,7 @@ export function NotificationBell() {
                   key={n.id}
                   className={`border-b border-stone-100 px-4 py-3 last:border-0 ${
                     !n.read
-                      ? "border-l-2 border-l-amber-500 bg-amber-50"
+                      ? "border-l-2 theme-accent-border bg-stone-50"
                       : "opacity-70"
                   }`}
                 >
@@ -135,7 +135,7 @@ export function NotificationBell() {
                         markOneRead(n.id);
                         setOpen(false);
                       }}
-                      className="mt-1 block text-xs font-semibold text-amber-600 hover:text-amber-700"
+                      className="mt-1 block text-xs font-semibold theme-accent-text hover:opacity-80"
                     >
                       {t("notification.viewOrder")} &rarr;
                     </Link>
