@@ -48,7 +48,9 @@ Customer-facing reads (products, categories) hit Firestore directly from the cli
 | `/api/vietqr` | `POST` | Returns VietQR image URL for a given order |
 | `/api/momo/create` | `POST` | Initiates MoMo payment, returns redirect URL |
 | `/api/momo/callback` | `POST` | MoMo webhook — verifies HMAC, updates payment status |
-| `/api/notifications/read-all` | `POST` | Marks all notifications as read for the authenticated user |
+| `/api/notifications/read-all` | `PATCH` | Marks all notifications as read for the authenticated user |
+| `/api/products` | `POST` | Create product (admin only) |
+| `/api/products/[id]` | `PUT`, `DELETE` | Update or delete product (admin only) |
 
 ### Order creation (the critical path)
 
@@ -119,6 +121,19 @@ Client-side only. `src/lib/i18n/` contains:
 ### Confirm dialog
 
 `src/lib/confirm-context.tsx` provides `ConfirmProvider` + `useConfirm()`. `useConfirm()` returns an async `confirm(message)` function that resolves `true`/`false`. Wraps `ConfirmDialog` (`src/components/ui/ConfirmDialog.tsx`). Mounted in `layout.tsx`. Use instead of `window.confirm`.
+
+### Shipping fee
+
+`src/lib/shipping.ts` exports `calculateShippingFee(provinceCode, subtotal)`:
+- Returns `0` (free) when `subtotal >= 500_000`.
+- HCM (code `"79"`) and Hanoi (code `"01"`): 20,000 VND.
+- All other provinces: 35,000 VND.
+
+Called server-side in `POST /api/orders` to set `shippingFee` on the order, and client-side in the checkout page for the real-time summary.
+
+### Toast notifications
+
+`src/lib/toast-context.tsx` provides `ToastProvider` + `useToast()`. `useToast()` returns `{ toast }` where `toast(message, variant?)` shows a transient notification. Variants: `"info"`, `"success"`, `"error"`. Rendered by `src/components/ui/Toast.tsx`. Mounted in `layout.tsx`.
 
 ### Admin UI
 

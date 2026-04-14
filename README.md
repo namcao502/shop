@@ -1,36 +1,132 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Souvenir Shop
+
+A full-stack e-commerce storefront for Vietnamese souvenirs, built with Next.js 16 App Router, Firebase, and MoMo/VietQR payment integration.
+
+## Stack
+
+- **Framework:** Next.js 16 App Router, React 19, TypeScript
+- **Styling:** Tailwind CSS
+- **Backend:** Firebase 12 (Auth, Firestore, Storage) via Admin SDK in API routes
+- **Payments:** VietQR (bank transfer QR), MoMo (e-wallet)
+- **Validation:** Zod 4
+- **i18n:** Vietnamese / English (client-side, localStorage-persisted)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.local.example .env.local   # fill in required env vars (see below)
+npm install
+npm run dev                         # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Seed Firestore
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx tsx scripts/seed.ts            # categories, sample products, order counter
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Variables
 
-## Learn More
+Copy `.env.local.example` to `.env.local` and fill in:
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_FIREBASE_*` (6 keys) | Firebase client SDK — from Firebase console |
+| `FIREBASE_ADMIN_PROJECT_ID` | Firebase Admin SDK |
+| `FIREBASE_ADMIN_CLIENT_EMAIL` | Firebase Admin SDK |
+| `FIREBASE_ADMIN_PRIVATE_KEY` | Firebase Admin SDK (service account) |
+| `VIETQR_BANK_ID` | VCB bank account for QR generation |
+| `VIETQR_ACCOUNT_NUMBER` | VCB bank account number |
+| `VIETQR_ACCOUNT_NAME` | VCB account holder name |
+| `MOMO_PARTNER_CODE` | MoMo payment gateway |
+| `MOMO_ACCESS_KEY` | MoMo payment gateway |
+| `MOMO_SECRET_KEY` | MoMo payment gateway |
+| `MOMO_ENDPOINT` | MoMo API endpoint |
+| `NEXT_PUBLIC_BASE_URL` | Base URL for MoMo webhook `returnUrl` (e.g. `http://localhost:3000`) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Commands
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run dev      # dev server (localhost:3000)
+npm run build    # production build + type check
+npm run lint     # ESLint
+```
 
-## Deploy on Vercel
+No test framework configured. Use `npm run build` to catch TypeScript errors.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Data flow
+
+Customer reads (products, categories) hit Firestore directly from the client. All mutations (order creation, payment, admin actions) go through API routes (`src/app/api/`) using the Firebase Admin SDK — the server enforces prices, validates stock, and signs HMAC webhooks.
+
+**Exception:** Admins upload product images directly to Firebase Storage from the client (`src/components/admin/ImageUploader.tsx`). Storage rules restrict this to authenticated admins only.
+
+### Authentication
+
+- **Client:** `AuthProvider` + `useAuth()` in `src/lib/firebase/auth-context.tsx`
+- **Server:** `verifyAuth()` / `verifyAdminAuth()` in `src/lib/verify-admin.ts` — verifies Firebase ID token and `isAdmin` flag
+- **Admin access:** set `isAdmin: true` on the user document in Firestore
+
+### API routes
+
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/orders` | `POST` | Create order (atomic stock decrement + notification) |
+| `/api/orders/[id]` | `PATCH` | `cancel`, `update_address` (customer); `confirm_payment`, `ship`, `deliver` (admin) |
+| `/api/vietqr` | `POST` | Returns VietQR image URL for an order |
+| `/api/momo/create` | `POST` | Initiates MoMo payment, returns redirect URL |
+| `/api/momo/callback` | `POST` | MoMo webhook — verifies HMAC, updates payment status |
+| `/api/notifications/read-all` | `PATCH` | Marks all notifications read for the current user |
+| `/api/products` | `POST` | Create product (admin only) |
+| `/api/products/[id]` | `PUT`, `DELETE` | Update or delete product (admin only) |
+
+### Order flow
+
+`POST /api/orders` runs a Firestore transaction: reads stock, decrements it, creates the order, and writes an `order_placed` notification atomically (prevents overselling). The client then calls `/api/vietqr` or `/api/momo/create`. MoMo sends a webhook to `/api/momo/callback`, which verifies the HMAC before updating payment status.
+
+`orderCode` (e.g. `ORD0042`) is generated by atomically incrementing `counters/orders`. It doubles as the VietQR transfer reference.
+
+### Shipping fee
+
+`src/lib/shipping.ts` — `calculateShippingFee(provinceCode, subtotal)`:
+- Free when `subtotal >= 500,000 VND`
+- HCM (`"79"`) and Hanoi (`"01"`): 20,000 VND
+- All other provinces: 35,000 VND
+
+Called server-side on order creation and client-side in the checkout summary.
+
+### Cart
+
+Stored in `localStorage` only. Shared via `CartProvider` (`src/lib/cart-context.tsx`). Quantities are validated against live Firestore stock when the checkout page loads.
+
+### Notifications
+
+`writeNotification(data, tx?)` in `src/lib/notifications.ts`. Pass a transaction `tx` to write atomically (order creation), or omit for fire-and-forget (MoMo callback). Displayed via `NotificationBell` in the header.
+
+### i18n
+
+Client-side only. `src/lib/i18n/` — `vi` (default) and `en` dictionaries, persisted in `localStorage`. `useLocale()` returns `{ locale, setLocale, t }`. Pass `locale` to `formatPrice`/`formatDate` to match number formatting.
+
+## Page structure
+
+```
+src/app/
+  page.tsx                  # homepage (product listing)
+  products/
+    page.tsx                # all products with category filter
+    [slug]/page.tsx         # product detail
+  cart/page.tsx             # cart
+  checkout/page.tsx         # checkout (shipping + payment)
+  orders/
+    page.tsx                # order history
+    [id]/page.tsx           # order detail + timeline
+  admin/
+    page.tsx                # dashboard (KPIs, recent orders, top products)
+    orders/page.tsx         # order management
+    products/page.tsx       # product CRUD with image upload
+```
+
+## Firestore security rules
+
+`firestore.rules` — products and categories are public read; orders and mutations are write-protected (all via Admin SDK); `isAdmin` field is not writable from clients.
