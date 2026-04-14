@@ -18,21 +18,20 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [hue, setHueState] = useState<number>(DEFAULT_HUE);
-  const [rainbow, setRainbowState] = useState<boolean>(false);
+  const [rainbow, setRainbowState] = useState<boolean>(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hueRef = useRef<number>(DEFAULT_HUE);
 
   // Read localStorage on mount (client only)
   useEffect(() => {
     const savedHue = parseInt(localStorage.getItem(LS_HUE) ?? String(DEFAULT_HUE), 10);
-    const savedRainbow = localStorage.getItem(LS_RAINBOW) === "true";
+    // Default to rainbow=true for first-time visitors (no saved preference)
+    const savedRainbow = localStorage.getItem(LS_RAINBOW) !== "false";
     const initialHue = isNaN(savedHue) ? DEFAULT_HUE : Math.max(0, Math.min(360, savedHue));
     hueRef.current = initialHue;
     setHueState(initialHue);
     applyHue(initialHue);
-    if (savedRainbow) {
-      setRainbowState(true);
-    }
+    setRainbowState(savedRainbow);
   }, []);
 
   // Apply CSS var whenever hue changes
