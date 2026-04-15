@@ -153,32 +153,34 @@ After `"form.price": "Price (VND)",`, add:
 
 - [ ] **Step 5: Add Vietnamese translations to `src/lib/i18n/vi.ts`**
 
-After `"validation.categoryRequired": "Danh muc la bat buoc",` (find the actual line), add:
+Use proper Vietnamese with diacritics, matching the style of the existing entries in `vi.ts`.
+
+After `"validation.categoryRequired": "Danh mục là bắt buộc",` (find the actual line), add:
 
 ```ts
-  "validation.discountPriceInvalid": "Gia giam phai nho hon gia goc",
+  "validation.discountPriceInvalid": "Giá giảm phải nhỏ hơn giá gốc",
 ```
 
-After `"product.inStock": "con hang",`, add:
+After `"product.inStock": "còn hàng",`, add:
 
 ```ts
-  "product.youSave": "Ban tiet kiem {amount} ({percent}%)",
+  "product.youSave": "Bạn tiết kiệm {amount} ({percent}%)",
 ```
 
-After `"admin.shipTo": "Giao den:",`, add:
+After `"admin.shipTo": "Giao đến:",`, add:
 
 ```ts
-  "admin.settings": "Cai dat",
-  "admin.siteWideSale": "Khuyen mai toan cua hang",
-  "admin.siteWideSaleDesc": "Ghi de tat ca giam gia san pham",
-  "admin.applyDiscount": "Ap dung giam gia",
-  "admin.removeDiscount": "Xoa giam gia",
+  "admin.settings": "Cài đặt",
+  "admin.siteWideSale": "Khuyến mãi toàn cửa hàng",
+  "admin.siteWideSaleDesc": "Ghi đè tất cả giảm giá sản phẩm",
+  "admin.applyDiscount": "Áp dụng giảm giá",
+  "admin.removeDiscount": "Xóa giảm giá",
 ```
 
-After `"form.price": "Gia (VND)",`, add:
+After `"form.price": "Giá (VND)",`, add:
 
 ```ts
-  "form.discountPrice": "Giam gia",
+  "form.discountPrice": "Giảm giá",
 ```
 
 - [ ] **Step 6: Type-check**
@@ -254,13 +256,19 @@ const productUpdateSchema = z.object({
 );
 ```
 
-Also update the `ref.update(parsed.data)` call — Firestore needs explicit `FieldValue.delete()` to remove a field when `null` is passed. Replace the final `await ref.update(parsed.data)` with:
+Also update the file: add `FieldValue` to the existing firebase-admin import at the top of the file:
 
 ```ts
+// change:
+import { adminDb } from "@/lib/firebase/admin";
+// to:
+import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
+```
 
-// ...
+Then replace the final `await ref.update(parsed.data)` and `return NextResponse.json(...)` block with:
 
+```ts
 const { discountPrice, ...rest } = parsed.data;
 const updateData: Record<string, unknown> = { ...rest };
 if (discountPrice === null) {
@@ -271,7 +279,12 @@ if (discountPrice === null) {
 
 await ref.update(updateData);
 
-return NextResponse.json({ id, ...updateData });
+// Build response without FieldValue sentinel
+const responseData: Record<string, unknown> = { id, ...rest };
+if (discountPrice !== null && discountPrice !== undefined) {
+  responseData.discountPrice = discountPrice;
+}
+return NextResponse.json(responseData);
 ```
 
 - [ ] **Step 3: Type-check**
@@ -448,7 +461,28 @@ git commit -m "feat: enforce effective discount price server-side in order creat
 **Files:**
 - Modify: `src/components/admin/ProductForm.tsx`
 
-- [ ] **Step 1: Add discount state to ProductForm**
+- [ ] **Step 1: Update the `onSave` prop type in `ProductFormProps`**
+
+The `onSave` callback must be able to receive `discountPrice: null` so that clearing the field removes an existing discount. Change the interface:
+
+```ts
+// change:
+interface ProductFormProps {
+  product?: Product;
+  categories: Category[];
+  onSave: (data: Omit<Product, "id">) => Promise<void>;
+  onCancel: () => void;
+}
+// to:
+interface ProductFormProps {
+  product?: Product;
+  categories: Category[];
+  onSave: (data: Omit<Product, "id"> & { discountPrice?: number | null }) => Promise<void>;
+  onCancel: () => void;
+}
+```
+
+- [ ] **Step 2: Add discount state to ProductForm**
 
 In `src/components/admin/ProductForm.tsx`, add two new state variables after the existing `price` state:
 
@@ -459,9 +493,9 @@ const [discountInput, setDiscountInput] = useState<string>(
 );
 ```
 
-- [ ] **Step 2: Compute `discountPrice` on submit**
+- [ ] **Step 3: Compute `discountPrice` on submit**
 
-In the `handleSubmit` function, before `onSave(...)`, compute the discount price:
+In the `handleSubmit` function, before `onSave(...)`, compute the discount price. Pass `null` when the field is cleared (so the PUT endpoint removes the existing discount):
 
 ```ts
 const parsedPrice = parseInt(price, 10);
@@ -475,9 +509,10 @@ if (discountInput.trim() !== "") {
         : val;
   }
 }
+// null = "remove discount"; undefined would mean "don't touch" — we always send explicitly
 ```
 
-Then pass `discountPrice: computedDiscountPrice ?? undefined` inside `onSave(...)`:
+Then pass `discountPrice: computedDiscountPrice` inside `onSave(...)`:
 
 ```ts
 await onSave({
@@ -485,7 +520,7 @@ await onSave({
   slug,
   description,
   price: parsedPrice,
-  discountPrice: computedDiscountPrice ?? undefined,
+  discountPrice: computedDiscountPrice,
   stock: parseInt(stock, 10),
   categoryId,
   isPublished,
@@ -493,7 +528,7 @@ await onSave({
 });
 ```
 
-- [ ] **Step 3: Add discount validation**
+- [ ] **Step 4: Add discount validation**
 
 In the `validate` function, add after the price check:
 
@@ -511,7 +546,7 @@ if (discountInput.trim() !== "") {
 }
 ```
 
-- [ ] **Step 4: Add discount UI in the form**
+- [ ] **Step 5: Add discount UI in the form**
 
 In the JSX, in the `grid gap-4 sm:grid-cols-3` div (the price/stock/category row), add a fourth column for discount. Change the grid to `sm:grid-cols-4` and add after the price div:
 
@@ -552,7 +587,7 @@ const [errors, setErrors] = useState<Record<string, string>>({});
 
 (No change needed — it is already `Record<string, string>` which covers `discountPrice`.)
 
-- [ ] **Step 5: Type-check**
+- [ ] **Step 6: Type-check**
 
 ```bash
 npm run build
@@ -560,7 +595,7 @@ npm run build
 
 Expected: build succeeds.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add src/components/admin/ProductForm.tsx
