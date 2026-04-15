@@ -44,24 +44,9 @@
 - Modify: `src/lib/i18n/en.ts`
 - Modify: `src/lib/i18n/vi.ts`
 
-- [ ] **Step 1: Add `discountPrice` to `Product` type**
+- [x] **Step 1: Add `discountPrice` to `Product` type** _(already done)_
 
-In `src/lib/types.ts`, change the `Product` interface:
-
-```ts
-export interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  price: number;
-  discountPrice?: number;
-  images: string[];
-  categoryId: string;
-  stock: number;
-  isPublished: boolean;
-}
-```
+`discountPrice?: number` is already present in `src/lib/types.ts`. No change needed.
 
 - [ ] **Step 2: Create `src/lib/pricing.ts`**
 
@@ -93,11 +78,7 @@ export function discountPercent(original: number, effective: number): number {
 
 - [ ] **Step 3: Add translation keys to `src/lib/i18n/translations.ts`**
 
-Inside the `TranslationKey` union, after `| "validation.categoryRequired"`, add:
-
-```ts
-  | "validation.discountPriceInvalid"
-```
+`| "validation.discountPriceInvalid"` is already present — skip that one.
 
 After `| "product.inStock"`, add:
 
@@ -123,11 +104,7 @@ After `| "form.price"`, add:
 
 - [ ] **Step 4: Add English translations to `src/lib/i18n/en.ts`**
 
-After `"validation.categoryRequired": "Category is required",`, add:
-
-```ts
-  "validation.discountPriceInvalid": "Discount price must be less than regular price",
-```
+`"validation.discountPriceInvalid"` is already present — skip that one.
 
 After `"product.inStock": "in stock",`, add:
 
@@ -155,11 +132,7 @@ After `"form.price": "Price (VND)",`, add:
 
 Use proper Vietnamese with diacritics, matching the style of the existing entries in `vi.ts`.
 
-After `"validation.categoryRequired": "Danh mục là bắt buộc",` (find the actual line), add:
-
-```ts
-  "validation.discountPriceInvalid": "Giá giảm phải nhỏ hơn giá gốc",
-```
+`"validation.discountPriceInvalid"` is already present — skip that one.
 
 After `"product.inStock": "còn hàng",`, add:
 
@@ -194,7 +167,7 @@ Expected: build succeeds with no TypeScript errors.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/lib/types.ts src/lib/pricing.ts src/lib/i18n/translations.ts src/lib/i18n/en.ts src/lib/i18n/vi.ts
+git add src/lib/pricing.ts src/lib/i18n/translations.ts src/lib/i18n/en.ts src/lib/i18n/vi.ts
 git commit -m "feat: add discountPrice type, pricing utility, and i18n keys"
 ```
 
@@ -382,9 +355,16 @@ git commit -m "feat: add GET and PATCH /api/settings/discount route"
 **Files:**
 - Modify: `src/app/api/orders/route.ts`
 
-- [ ] **Step 1: Read `settings/discount` inside the transaction**
+- [ ] **Step 1: Add import and read `settings/discount` inside the transaction**
 
-In `src/app/api/orders/route.ts`, inside the `runTransaction` callback, add the settings read alongside the existing reads. Replace:
+At the top of `src/app/api/orders/route.ts`, add the import:
+
+```ts
+import { calculateEffectivePrice } from "@/lib/pricing";
+import type { SiteWideDiscount } from "@/lib/pricing";
+```
+
+Inside the `runTransaction` callback, add the settings read alongside the existing reads. Replace:
 
 ```ts
 const [productDocs, counterDoc] = await Promise.all([
@@ -403,8 +383,8 @@ const [productDocs, counterDoc, settingsDoc] = await Promise.all([
   tx.get(settingsRef),
 ]);
 
-const siteWide = settingsDoc.exists
-  ? (settingsDoc.data() as { active: boolean; value: number })
+const siteWide: SiteWideDiscount = settingsDoc.exists
+  ? (settingsDoc.data() as SiteWideDiscount)
   : { active: false, value: 0 };
 ```
 
@@ -423,12 +403,10 @@ orderItems.push({
 subtotal += data.price * reqItem.qty;
 
 // replace with:
-const effectivePrice =
-  siteWide.active && siteWide.value > 0
-    ? Math.floor(data.price * (1 - siteWide.value / 100))
-    : data.discountPrice != null && data.discountPrice < data.price
-    ? data.discountPrice
-    : data.price;
+const effectivePrice = calculateEffectivePrice(
+  { price: data.price, discountPrice: data.discountPrice },
+  siteWide
+);
 
 orderItems.push({
   productId: reqItem.productId,
@@ -1023,7 +1001,7 @@ export function ProductCard({ product, siteWide }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:bg-stone-800 dark:shadow-stone-900/50"
     >
       <div className="relative aspect-square overflow-hidden bg-stone-100">
         {thumbnail && !imgError ? (
@@ -1050,7 +1028,7 @@ export function ProductCard({ product, siteWide }: ProductCardProps) {
         )}
       </div>
       <div className="p-4">
-        <h3 className="text-sm font-medium text-stone-900">{product.name}</h3>
+        <h3 className="text-sm font-medium text-stone-900 dark:text-stone-100">{product.name}</h3>
         <p className="mt-1 text-lg font-bold text-amber-600">
           {formatPrice(effectivePrice, fmtLocale)}
         </p>

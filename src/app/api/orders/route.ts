@@ -7,6 +7,8 @@ import type { OrderItem } from "@/lib/types";
 import { shippingAddressSchema } from "@/lib/validation";
 import { writeNotification } from "@/lib/notifications";
 import { calculateShippingFee } from "@/lib/shipping";
+import { calculateEffectivePrice } from "@/lib/pricing";
+import type { SiteWideDiscount } from "@/lib/pricing";
 import { z } from "zod";
 
 const createOrderSchema = z.object({
@@ -46,10 +48,16 @@ export async function POST(request: NextRequest) {
       const productRefs = body.items.map((item) =>
         adminDb.collection("products").doc(item.productId)
       );
-      const [productDocs, counterDoc] = await Promise.all([
+      const settingsRef = adminDb.collection("settings").doc("discount");
+      const [productDocs, counterDoc, settingsDoc] = await Promise.all([
         Promise.all(productRefs.map((ref) => tx.get(ref))),
         tx.get(orderCounterRef),
+        tx.get(settingsRef),
       ]);
+
+      const siteWide: SiteWideDiscount = settingsDoc.exists
+        ? (settingsDoc.data() as SiteWideDiscount)
+        : { active: false, value: 0 };
 
       // 2. Validate products
       const orderItems: OrderItem[] = [];
@@ -75,14 +83,19 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        const effectivePrice = calculateEffectivePrice(
+          { price: data.price, discountPrice: data.discountPrice },
+          siteWide
+        );
+
         orderItems.push({
           productId: reqItem.productId,
           name: data.name,
-          price: data.price,
+          price: effectivePrice,
           qty: reqItem.qty,
         });
 
-        subtotal += data.price * reqItem.qty;
+        subtotal += effectivePrice * reqItem.qty;
       }
 
       // 3. All writes

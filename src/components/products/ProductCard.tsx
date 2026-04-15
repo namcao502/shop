@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { formatPrice } from "@/lib/format";
+import { calculateEffectivePrice, discountPercent } from "@/lib/pricing";
 import { useLocale } from "@/lib/i18n/locale-context";
 import type { Product } from "@/lib/types";
+import type { SiteWideDiscount } from "@/lib/pricing";
 
 interface ProductCardProps {
   product: Product;
+  siteWide?: SiteWideDiscount;
 }
 
 function BrokenImageIcon() {
@@ -23,11 +26,16 @@ function BrokenImageIcon() {
   );
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, siteWide }: ProductCardProps) {
   const { locale, t } = useLocale();
   const [imgError, setImgError] = useState(false);
   const thumbnail = product.images[0];
   const outOfStock = product.stock <= 0;
+  const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
+
+  const effectivePrice = calculateEffectivePrice(product, siteWide);
+  const hasDiscount = effectivePrice < product.price;
+  const pct = hasDiscount ? discountPercent(product.price, effectivePrice) : 0;
 
   return (
     <Link
@@ -45,6 +53,11 @@ export function ProductCard({ product }: ProductCardProps) {
         ) : (
           <BrokenImageIcon />
         )}
+        {hasDiscount && (
+          <div className="absolute left-2 top-2 rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white">
+            -{pct}%
+          </div>
+        )}
         {outOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
             <span className="rounded bg-white px-3 py-1 text-sm font-medium text-stone-900">
@@ -56,8 +69,13 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="p-4">
         <h3 className="text-sm font-medium text-stone-900 dark:text-stone-100">{product.name}</h3>
         <p className="mt-1 text-lg font-bold text-amber-600">
-          {formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}
+          {formatPrice(effectivePrice, fmtLocale)}
         </p>
+        {hasDiscount && (
+          <p className="text-xs text-stone-400 line-through">
+            {formatPrice(product.price, fmtLocale)}
+          </p>
+        )}
       </div>
     </Link>
   );

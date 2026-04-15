@@ -1,29 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where, limit } from "firebase/firestore";
+import { collection, getDocs, query, where, limit, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useLocale } from "@/lib/i18n/locale-context";
 import type { Product } from "@/lib/types";
+import type { SiteWideDiscount } from "@/lib/pricing";
 
 export default function HomePage() {
   const { t } = useLocale();
   const [featured, setFeatured] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [siteWide, setSiteWide] = useState<SiteWideDiscount>({ active: false, value: 0 });
 
   useEffect(() => {
     async function fetchFeatured() {
-      const snap = await getDocs(
-        query(
-          collection(db, "products"),
-          where("isPublished", "==", true),
-          limit(8)
-        )
-      );
-      setFeatured(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Product)));
+      const [snap, settingsSnap] = await Promise.all([
+        getDocs(
+          query(
+            collection(db, "products"),
+            where("isPublished", "==", true),
+            limit(8)
+          )
+        ),
+        getDoc(doc(db, "settings", "discount")),
+      ]);
+      setFeatured(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product)));
+      if (settingsSnap.exists()) {
+        setSiteWide(settingsSnap.data() as SiteWideDiscount);
+      }
       setLoading(false);
     }
     fetchFeatured();
@@ -70,7 +78,7 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <ProductGrid products={featured} />
+            <ProductGrid products={featured} siteWide={siteWide} />
           )}
         </div>
       </section>

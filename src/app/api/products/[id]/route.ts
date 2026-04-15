@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { verifyAdminAuth } from "@/lib/verify-admin";
 import { z } from "zod";
 
@@ -12,11 +13,15 @@ const productUpdateSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase alphanumeric with hyphens"),
   description: z.string().max(5000).default(""),
   price: z.number().int().min(1, "Price must be at least 1"),
+  discountPrice: z.number().int().min(1).nullable().optional(),
   stock: z.number().int().min(0, "Stock cannot be negative"),
   categoryId: z.string().min(1, "Category is required"),
   isPublished: z.boolean().default(false),
   images: z.array(z.string().url()).max(10).default([]),
-});
+}).refine(
+  (data) => data.discountPrice == null || data.discountPrice < data.price,
+  { message: "Discount price must be less than regular price", path: ["discountPrice"] }
+);
 
 export async function PUT(
   request: NextRequest,
@@ -53,9 +58,22 @@ export async function PUT(
     return NextResponse.json({ error: "Slug already in use" }, { status: 409 });
   }
 
-  await ref.update(parsed.data);
+  const { discountPrice, ...rest } = parsed.data;
+  const updateData: Record<string, unknown> = { ...rest };
+  if (discountPrice === null) {
+    updateData.discountPrice = FieldValue.delete();
+  } else if (discountPrice !== undefined) {
+    updateData.discountPrice = discountPrice;
+  }
 
-  return NextResponse.json({ id, ...parsed.data });
+  await ref.update(updateData);
+
+  // Build response without FieldValue sentinel
+  const responseData: Record<string, unknown> = { id, ...rest };
+  if (discountPrice !== null && discountPrice !== undefined) {
+    responseData.discountPrice = discountPrice;
+  }
+  return NextResponse.json(responseData);
 }
 
 export async function DELETE(

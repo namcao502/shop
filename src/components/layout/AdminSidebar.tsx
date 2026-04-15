@@ -8,6 +8,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   "/admin": "📊",
   "/admin/products": "📦",
   "/admin/orders": "🧾",
+  "/admin/settings": "⚙️",
 };
 
 interface AdminSidebarProps {
@@ -22,6 +23,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
     { href: "/admin", label: t("admin.dashboard") },
     { href: "/admin/products", label: t("admin.products") },
     { href: "/admin/orders", label: t("admin.orders") },
+    { href: "/admin/settings", label: t("admin.settings") },
   ];
 
   // Mobile: horizontal tab bar at top

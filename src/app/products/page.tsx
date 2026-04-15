@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, where, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { CategoryFilter } from "@/components/products/CategoryFilter";
 import { useLocale } from "@/lib/i18n/locale-context";
 import type { Product, Category } from "@/lib/types";
+import type { SiteWideDiscount } from "@/lib/pricing";
 
 export default function ProductsPage() {
   const { t } = useLocale();
@@ -14,10 +15,11 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [siteWide, setSiteWide] = useState<SiteWideDiscount>({ active: false, value: 0 });
 
   useEffect(() => {
     async function fetchData() {
-      const [productsSnap, categoriesSnap] = await Promise.all([
+      const [productsSnap, categoriesSnap, settingsSnap] = await Promise.all([
         getDocs(
           query(
             collection(db, "products"),
@@ -25,14 +27,18 @@ export default function ProductsPage() {
           )
         ),
         getDocs(query(collection(db, "categories"), orderBy("order"))),
+        getDoc(doc(db, "settings", "discount")),
       ]);
 
       setProducts(
-        productsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Product))
+        productsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Product))
       );
       setCategories(
-        categoriesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Category))
+        categoriesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Category))
       );
+      if (settingsSnap.exists()) {
+        setSiteWide(settingsSnap.data() as SiteWideDiscount);
+      }
       setLoading(false);
     }
     fetchData();
@@ -67,7 +73,7 @@ export default function ProductsPage() {
           onSelect={setSelectedCategory}
         />
       </div>
-      <ProductGrid products={filtered} />
+      <ProductGrid products={filtered} siteWide={siteWide} />
     </div>
   );
 }

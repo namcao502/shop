@@ -29,6 +29,10 @@ export default function AdminProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkValue, setBulkValue] = useState("");
+  const [bulkMode, setBulkMode] = useState<"vnd" | "percent">("percent");
 
   const fetchData = async () => {
     const [prodSnap, catSnap] = await Promise.all([
@@ -49,7 +53,7 @@ export default function AdminProductsPage() {
     fetchData();
   }, []);
 
-  const handleSave = async (data: Omit<Product, "id">) => {
+  const handleSave = async (data: Omit<Product, "id" | "discountPrice"> & { discountPrice?: number | null }) => {
     setSaveError(null);
     const token = await getIdToken();
     const isEdit = !!editing;
@@ -74,6 +78,72 @@ export default function AdminProductsPage() {
     toast(t(isEdit ? "toast.productUpdated" : "toast.productCreated"), "success");
     setEditing(null);
     setCreating(false);
+    await fetchData();
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === products.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(products.map((p) => p.id)));
+    }
+  };
+
+  const handleBulkApply = async () => {
+    const val = parseInt(bulkValue, 10);
+    if (isNaN(val) || val <= 0) return;
+    const token = await getIdToken();
+    await Promise.all(
+      [...selectedIds].map(async (id) => {
+        const product = products.find((p) => p.id === id);
+        if (!product) return;
+        const discountPrice =
+          bulkMode === "percent"
+            ? Math.floor(product.price * (1 - val / 100))
+            : val;
+        if (discountPrice <= 0 || discountPrice >= product.price) return;
+        await fetch(`/api/products/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ...product, discountPrice }),
+        });
+      })
+    );
+    setSelectedIds(new Set());
+    setBulkOpen(false);
+    setBulkValue("");
+    await fetchData();
+  };
+
+  const handleBulkRemove = async () => {
+    const token = await getIdToken();
+    await Promise.all(
+      [...selectedIds].map((id) => {
+        const product = products.find((p) => p.id === id);
+        if (!product) return;
+        return fetch(`/api/products/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ...product, discountPrice: null }),
+        });
+      })
+    );
+    setSelectedIds(new Set());
     await fetchData();
   };
 
@@ -131,13 +201,58 @@ export default function AdminProductsPage() {
         <Button onClick={() => setCreating(true)}>{t("admin.addProduct")}</Button>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <span className="text-sm font-semibold text-amber-800">
+            {selectedIds.size} selected
+          </span>
+          {bulkOpen ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={bulkValue}
+                onChange={(e) => setBulkValue(e.target.value)}
+                placeholder="Value"
+                className="w-24 rounded border border-gray-300 px-2 py-1 text-sm"
+              />
+              <button
+                onClick={() => setBulkMode(bulkMode === "vnd" ? "percent" : "vnd")}
+                className={`rounded border px-2 py-1 text-xs font-semibold ${
+                  bulkMode === "percent"
+                    ? "border-amber-500 bg-amber-100 text-amber-700"
+                    : "border-gray-300 bg-white text-gray-600"
+                }`}
+              >
+                {bulkMode === "percent" ? "%" : "VND"}
+              </button>
+              <Button size="sm" onClick={handleBulkApply}>{t("form.confirm")}</Button>
+              <Button size="sm" variant="ghost" onClick={() => setBulkOpen(false)}>{t("form.cancel")}</Button>
+            </div>
+          ) : (
+            <>
+              <Button size="sm" onClick={() => setBulkOpen(true)}>{t("admin.applyDiscount")}</Button>
+              <Button size="sm" variant="ghost" onClick={handleBulkRemove}>{t("admin.removeDiscount")}</Button>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Desktop table */}
       <div className="hidden rounded-lg border bg-white md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs uppercase text-gray-500">
+              <th className="px-4 py-2 w-8">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === products.length && products.length > 0}
+                  onChange={toggleSelectAll}
+                  className="accent-amber-600"
+                />
+              </th>
               <th className="px-4 py-2">{t("admin.colName")}</th>
               <th className="px-4 py-2">{t("admin.colPrice")}</th>
+              <th className="px-4 py-2">{t("form.discountPrice")}</th>
               <th className="px-4 py-2">{t("admin.colStock")}</th>
               <th className="px-4 py-2">{t("admin.colStatus")}</th>
               <th className="px-4 py-2">{t("admin.colActions")}</th>
@@ -146,8 +261,21 @@ export default function AdminProductsPage() {
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className="border-b last:border-0">
+                <td className="px-4 py-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(product.id)}
+                    onChange={() => toggleSelect(product.id)}
+                    className="accent-amber-600"
+                  />
+                </td>
                 <td className="px-4 py-2 font-medium">{product.name}</td>
                 <td className="px-4 py-2">{formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}</td>
+                <td className="px-4 py-2">
+                  {product.discountPrice != null
+                    ? <span className="font-medium text-amber-700">{formatPrice(product.discountPrice, locale === "vi" ? "vi-VN" : "en-US")}</span>
+                    : <span className="text-gray-400">—</span>}
+                </td>
                 <td className="px-4 py-2">
                   <span className={product.stock < 5 ? "font-bold text-red-600" : ""}>
                     {product.stock}

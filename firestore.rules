@@ -35,6 +35,12 @@ service cloud.firestore {
                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'createdAt']);
     }
 
+    // Settings: public read (e.g. site-wide discount), admin write only
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Counters: no client access (Admin SDK only)
     match /counters/{counterId} {
       allow read, write: if false;

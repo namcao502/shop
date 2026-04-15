@@ -10,7 +10,7 @@ import type { Product, Category } from "@/lib/types";
 interface ProductFormProps {
   product?: Product;
   categories: Category[];
-  onSave: (data: Omit<Product, "id">) => Promise<void>;
+  onSave: (data: Omit<Product, "id" | "discountPrice"> & { discountPrice?: number | null }) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -24,6 +24,10 @@ export function ProductForm({
   const [slug, setSlug] = useState(product?.slug ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [price, setPrice] = useState(product?.price?.toString() ?? "");
+  const [discountMode, setDiscountMode] = useState<"vnd" | "percent">("vnd");
+  const [discountInput, setDiscountInput] = useState<string>(
+    product?.discountPrice?.toString() ?? ""
+  );
   const [stock, setStock] = useState(product?.stock?.toString() ?? "0");
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? "");
   const [isPublished, setIsPublished] = useState(product?.isPublished ?? true);
@@ -52,6 +56,17 @@ export function ProductForm({
       next.slug = t("validation.slugFormat");
     const parsedPrice = parseInt(price, 10);
     if (!price || isNaN(parsedPrice) || parsedPrice < 1) next.price = t("validation.priceMin");
+    if (discountInput.trim() !== "") {
+      const val = parseInt(discountInput, 10);
+      const parsedPriceVal = parseInt(price, 10);
+      const computed =
+        discountMode === "percent"
+          ? Math.floor(parsedPriceVal * (1 - val / 100))
+          : val;
+      if (isNaN(val) || val <= 0 || computed >= parsedPriceVal || computed <= 0) {
+        next.discountPrice = t("validation.discountPriceInvalid");
+      }
+    }
     const parsedStock = parseInt(stock, 10);
     if (stock === "" || isNaN(parsedStock) || parsedStock < 0) next.stock = t("validation.stockNegative");
     if (!categoryId) next.categoryId = t("validation.categoryRequired");
@@ -62,16 +77,30 @@ export function ProductForm({
   const handleSubmit = async () => {
     if (!validate()) return;
     setSaving(true);
-    await onSave({
+    const parsedPrice = parseInt(price, 10);
+    let computedDiscountPrice: number | null = null;
+    if (discountInput.trim() !== "") {
+      const val = parseInt(discountInput, 10);
+      if (!isNaN(val) && val > 0) {
+        computedDiscountPrice =
+          discountMode === "percent"
+            ? Math.floor(parsedPrice * (1 - val / 100))
+            : val;
+      }
+    }
+    // null = "remove discount"; undefined would mean "don't touch" -- we always send explicitly
+    const saveData: Omit<Product, "id" | "discountPrice"> & { discountPrice?: number | null } = {
       name,
       slug,
       description,
-      price: parseInt(price, 10),
+      price: parsedPrice,
+      discountPrice: computedDiscountPrice,
       stock: parseInt(stock, 10),
       categoryId,
       isPublished,
       images,
-    });
+    };
+    await onSave(saveData);
     setSaving(false);
   };
 
@@ -104,7 +133,7 @@ export function ProductForm({
           rows={3}
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <div>
           <Input
             label={t("form.price")}
@@ -113,6 +142,32 @@ export function ProductForm({
             onChange={(e) => setPrice(e.target.value)}
           />
           {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
+        </div>
+        <div>
+          <label className="text-sm font-medium text-gray-700">{t("form.discountPrice")}</label>
+          <div className="mt-1 flex gap-1">
+            <input
+              type="number"
+              value={discountInput}
+              onChange={(e) => setDiscountInput(e.target.value)}
+              placeholder="—"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            />
+            <button
+              type="button"
+              onClick={() => setDiscountMode(discountMode === "vnd" ? "percent" : "vnd")}
+              className={`shrink-0 rounded-lg border px-2 py-1 text-xs font-semibold transition-colors ${
+                discountMode === "percent"
+                  ? "border-amber-500 bg-amber-50 text-amber-700"
+                  : "border-gray-300 bg-gray-50 text-gray-600"
+              }`}
+            >
+              {discountMode === "percent" ? "%" : "VND"}
+            </button>
+          </div>
+          {errors.discountPrice && (
+            <p className="mt-1 text-xs text-red-600">{errors.discountPrice}</p>
+          )}
         </div>
         <div>
           <Input

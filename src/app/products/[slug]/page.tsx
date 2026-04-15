@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/format";
@@ -10,6 +10,8 @@ import { useLocale } from "@/lib/i18n/locale-context";
 import { useToast } from "@/lib/toast-context";
 import { Button } from "@/components/ui/Button";
 import type { Product } from "@/lib/types";
+import { calculateEffectivePrice, discountPercent } from "@/lib/pricing";
+import type { SiteWideDiscount } from "@/lib/pricing";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -21,22 +23,31 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [qty, setQty] = useState(1);
+  const [siteWide, setSiteWide] = useState<SiteWideDiscount>({ active: false, value: 0 });
 
   useEffect(() => {
     async function fetchProduct() {
-      const snap = await getDocs(
-        query(
-          collection(db, "products"),
-          where("slug", "==", params.slug),
-          where("isPublished", "==", true)
-        )
-      );
+      const [snap, settingsSnap] = await Promise.all([
+        getDocs(
+          query(
+            collection(db, "products"),
+            where("slug", "==", params.slug),
+            where("isPublished", "==", true)
+          )
+        ),
+        getDoc(doc(db, "settings", "discount")),
+      ]);
+
+      if (settingsSnap.exists()) {
+        setSiteWide(settingsSnap.data() as SiteWideDiscount);
+      }
+
       if (snap.empty) {
         setLoading(false);
         return;
       }
-      const doc = snap.docs[0];
-      setProduct({ id: doc.id, ...doc.data() } as Product);
+      const docSnap = snap.docs[0];
+      setProduct({ id: docSnap.id, ...docSnap.data() } as Product);
       setLoading(false);
     }
     fetchProduct();
@@ -66,11 +77,17 @@ export default function ProductDetailPage() {
 
   const outOfStock = product.stock <= 0;
 
+  const effectivePrice = calculateEffectivePrice(product, siteWide);
+  const hasDiscount = effectivePrice < product.price;
+  const pct = hasDiscount ? discountPercent(product.price, effectivePrice) : 0;
+  const saved = product.price - effectivePrice;
+  const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
+
   const handleAddToCart = () => {
     addItem({
       productId: product.id,
       name: product.name,
-      price: product.price,
+      price: effectivePrice,
       qty,
       image: product.images[0] ?? "",
       slug: product.slug,
@@ -83,12 +100,17 @@ export default function ProductDetailPage() {
       <div className="grid gap-8 md:grid-cols-2">
         {/* Images */}
         <div>
-          <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+          <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
             <img
               src={product.images[selectedImage] ?? "/placeholder.svg"}
               alt={product.name}
               className="h-full w-full object-cover"
             />
+            {hasDiscount && (
+              <div className="absolute left-3 top-3 rounded bg-red-600 px-2 py-1 text-sm font-bold text-white">
+                -{pct}%
+              </div>
+            )}
           </div>
           {product.images.length > 1 && (
             <div className="mt-3 flex gap-2">
@@ -110,9 +132,25 @@ export default function ProductDetailPage() {
         {/* Info */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{product.name}</h1>
-          <p className="mt-2 text-3xl font-bold text-amber-700 dark:text-amber-400">
-            {formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}
-          </p>
+          <div className="mt-2">
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl font-bold text-amber-700">
+                {formatPrice(effectivePrice, fmtLocale)}
+              </span>
+              {hasDiscount && (
+                <span className="text-lg text-stone-400 line-through">
+                  {formatPrice(product.price, fmtLocale)}
+                </span>
+              )}
+            </div>
+            {hasDiscount && (
+              <p className="mt-1 text-sm font-medium text-red-600">
+                {t("product.youSave")
+                  .replace("{amount}", formatPrice(saved, fmtLocale))
+                  .replace("{percent}", pct.toString())}
+              </p>
+            )}
+          </div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">{product.description}</p>
 
           {outOfStock ? (
