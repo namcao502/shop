@@ -67,6 +67,7 @@ export const vi: Record<TranslationKey, string> = {
   "validation.priceMin": "Giá phải lớn hơn 0",
   "validation.stockNegative": "Tồn kho không thể âm",
   "validation.categoryRequired": "Danh mục là bắt buộc",
+  "validation.discountPriceInvalid": "Giá giảm phải nhỏ hơn giá gốc",
   "payment.title": "Phương thức thanh toán",
   "payment.vietqr.label": "Chuyển khoản ngân hàng (VietQR)",
   "payment.vietqr.desc": "Quét mã QR bằng ứng dụng ngân hàng để thanh toán",

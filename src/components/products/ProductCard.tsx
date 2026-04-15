@@ -32,7 +32,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:bg-stone-800 dark:shadow-stone-900/50"
     >
       <div className="relative aspect-square overflow-hidden bg-stone-100">
         {thumbnail && !imgError ? (
@@ -54,7 +54,7 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
       </div>
       <div className="p-4">
-        <h3 className="text-sm font-medium text-stone-900">{product.name}</h3>
+        <h3 className="text-sm font-medium text-stone-900 dark:text-stone-100">{product.name}</h3>
         <p className="mt-1 text-lg font-bold text-amber-600">
           {formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}
         </p>

@@ -19,8 +19,8 @@ export function OrderTimeline({ currentStatus }: OrderTimelineProps) {
 
   if (currentStatus === "cancelled") {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-center">
-        <p className="font-medium text-red-700">{t("timeline.cancelled")}</p>
+      <div className="rounded-lg bg-red-50 p-4 text-center dark:bg-red-900/20">
+        <p className="font-medium text-red-700 dark:text-red-400">{t("timeline.cancelled")}</p>
       </div>
     );
   }
@@ -38,14 +38,14 @@ export function OrderTimeline({ currentStatus }: OrderTimelineProps) {
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
                   isActive
                     ? "bg-amber-600 text-white"
-                    : "bg-gray-200 text-gray-500"
+                    : "bg-gray-200 text-gray-500 dark:bg-stone-700 dark:text-stone-400"
                 }`}
               >
                 {i + 1}
               </div>
               <p
                 className={`mt-1 text-xs ${
-                  isActive ? "font-medium text-gray-900" : "text-gray-400"
+                  isActive ? "font-medium text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"
                 }`}
               >
                 {step.label}
@@ -54,7 +54,7 @@ export function OrderTimeline({ currentStatus }: OrderTimelineProps) {
             {i < steps.length - 1 && (
               <div
                 className={`mx-2 h-0.5 flex-1 ${
-                  i < currentIndex ? "bg-amber-600" : "bg-gray-200"
+                  i < currentIndex ? "bg-amber-600" : "bg-gray-200 dark:bg-stone-700"
                 }`}
               />
             )}

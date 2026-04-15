@@ -19,13 +19,13 @@ export function OrderCard({ order }: OrderCardProps) {
   return (
     <Link
       href={`/orders/${order.id}`}
-      className="block rounded-lg border p-4 transition-shadow hover:shadow-md"
+      className="block rounded-lg border p-4 transition-shadow hover:shadow-md dark:border-stone-700 dark:hover:border-stone-600"
     >
       <div className="flex items-center justify-between">
-        <span className="font-mono text-sm font-bold text-gray-900">
+        <span className="font-mono text-sm font-bold text-gray-900 dark:text-gray-100">
           {order.orderCode}
         </span>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-500 dark:text-gray-400">
           {formatDate(order.createdAt, fmtLocale)}
         </span>
       </div>
@@ -38,7 +38,7 @@ export function OrderCard({ order }: OrderCardProps) {
           {formatPrice(order.totalAmount, fmtLocale)}
         </span>
       </div>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
         {itemCount} {itemCount === 1 ? t("orders.item") : t("orders.items")}
       </p>
     </Link>

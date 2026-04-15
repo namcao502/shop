@@ -76,6 +76,7 @@ export type TranslationKey =
   | "validation.priceMin"
   | "validation.stockNegative"
   | "validation.categoryRequired"
+  | "validation.discountPriceInvalid"
   // payment
   | "payment.title"
   | "payment.vietqr.label"

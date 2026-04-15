@@ -28,14 +28,14 @@ export function PaymentSelector({
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-medium text-gray-900">{t("payment.title")}</h2>
+      <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{t("payment.title")}</h2>
       {options.map((opt) => (
         <label
           key={opt.value}
           className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
             selected === opt.value
-              ? "border-amber-600 bg-amber-50"
-              : "border-gray-200 hover:bg-gray-50"
+              ? "border-amber-600 bg-amber-50 dark:border-amber-500 dark:bg-amber-900/20"
+              : "border-gray-200 hover:bg-gray-50 dark:border-stone-600 dark:hover:bg-stone-700/50"
           }`}
         >
           <input
@@ -47,8 +47,8 @@ export function PaymentSelector({
             className="mt-0.5 accent-amber-600"
           />
           <div>
-            <p className="font-medium text-gray-900">{opt.label}</p>
-            <p className="text-sm text-gray-500">{opt.desc}</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">{opt.label}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{opt.desc}</p>
           </div>
         </label>
       ))}

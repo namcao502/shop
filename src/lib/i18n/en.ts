@@ -67,6 +67,7 @@ export const en: Record<TranslationKey, string> = {
   "validation.priceMin": "Price must be at least 1",
   "validation.stockNegative": "Stock cannot be negative",
   "validation.categoryRequired": "Category is required",
+  "validation.discountPriceInvalid": "Discount price must be less than the original price",
   "payment.title": "Payment Method",
   "payment.vietqr.label": "Bank Transfer (VietQR)",
   "payment.vietqr.desc": "Scan QR code with your banking app to pay",

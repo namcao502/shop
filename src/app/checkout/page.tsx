@@ -87,10 +87,10 @@ export default function CheckoutPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           {t("checkout.signInRequired")}
         </h1>
-        <p className="mt-2 text-gray-500">
+        <p className="mt-2 text-gray-500 dark:text-gray-400">
           {t("checkout.signInMessage")}
         </p>
         <Button className="mt-4" onClick={signIn}>
@@ -103,7 +103,7 @@ export default function CheckoutPage() {
   if (items.length === 0 && !qrData) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">{t("checkout.cartEmpty")}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("checkout.cartEmpty")}</h1>
         <Button className="mt-4" onClick={() => router.push("/products")}>
           {t("checkout.browseProducts")}
         </Button>
@@ -225,7 +225,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("checkout.title")}</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">{t("checkout.title")}</h1>
 
       <div className="space-y-8">
         {/* Stock warnings */}
@@ -234,26 +234,26 @@ export default function CheckoutPage() {
         )}
 
         {/* Order summary */}
-        <div className="rounded-lg border bg-gray-50 p-4">
-          <h2 className="text-lg font-medium text-gray-900">{t("checkout.orderSummary")}</h2>
+        <div className="rounded-lg border bg-gray-50 p-4 dark:border-stone-700 dark:bg-stone-800/60">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{t("checkout.orderSummary")}</h2>
           {items.map((item) => (
             <div
               key={item.productId}
               className="mt-2 flex justify-between text-sm"
             >
-              <span className="text-gray-600">
+              <span className="text-gray-600 dark:text-gray-400">
                 {item.name} x {item.qty}
               </span>
               <span>{formatPrice(item.price * item.qty, fmtLocale)}</span>
             </div>
           ))}
-          <div className="mt-3 border-t pt-3 space-y-1 text-sm">
-            <div className="flex justify-between text-gray-600">
+          <div className="mt-3 border-t pt-3 space-y-1 text-sm dark:border-stone-700">
+            <div className="flex justify-between text-gray-600 dark:text-gray-400">
               <span>{t("order.subtotal")}</span>
               <span>{formatPrice(subtotal, fmtLocale)}</span>
             </div>
             {shippingFee !== null && (
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>{t("order.shipping")}</span>
                 <span>
                   {shippingFee === 0
@@ -275,7 +275,7 @@ export default function CheckoutPage() {
         <PaymentSelector selected={paymentMethod} onSelect={setPaymentMethod} />
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
             <p>{error}</p>
             {createdOrderId && (
               <p className="mt-2">

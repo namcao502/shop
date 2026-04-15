@@ -56,7 +56,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">{t("product.notFound")}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("product.notFound")}</h1>
         <Button className="mt-4" onClick={() => router.push("/products")}>
           {t("product.backToProducts")}
         </Button>
@@ -109,11 +109,11 @@ export default function ProductDetailPage() {
 
         {/* Info */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
-          <p className="mt-2 text-3xl font-bold text-amber-700">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{product.name}</h1>
+          <p className="mt-2 text-3xl font-bold text-amber-700 dark:text-amber-400">
             {formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}
           </p>
-          <p className="mt-4 text-gray-600">{product.description}</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{product.description}</p>
 
           {outOfStock ? (
             <p className="mt-6 text-lg font-medium text-red-600">{t("product.outOfStock")}</p>
@@ -122,14 +122,14 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
                 >
                   -
                 </button>
                 <span className="w-8 text-center">{qty}</span>
                 <button
                   onClick={() => setQty(Math.min(product.stock, qty + 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
                 >
                   +
                 </button>
@@ -140,7 +140,7 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
             {product.stock > 0 ? `${product.stock} ${t("product.inStock")}` : ""}
           </p>
         </div>

@@ -12,8 +12,8 @@ interface ShippingFormProps {
 }
 
 const selectClass = (hasError: boolean) =>
-  `w-full rounded-lg border px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white ${
-    hasError ? "border-red-500" : "border-gray-300"
+  `w-full rounded-lg border px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white dark:bg-stone-800 dark:text-gray-100 ${
+    hasError ? "border-red-500 dark:border-red-500" : "border-gray-300 dark:border-stone-600"
   }`;
 
 export function ShippingForm({ address, onChange, errors = {} }: ShippingFormProps) {
@@ -25,7 +25,7 @@ export function ShippingForm({ address, onChange, errors = {} }: ShippingFormPro
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-medium text-gray-900">{t("shipping.title")}</h2>
+      <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{t("shipping.title")}</h2>
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
           label={t("shipping.fullName")}
@@ -49,7 +49,7 @@ export function ShippingForm({ address, onChange, errors = {} }: ShippingFormPro
       />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label htmlFor="province-select" className="text-sm font-medium text-gray-700">
+          <label htmlFor="province-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {t("shipping.province")}
           </label>
           <select
@@ -73,7 +73,7 @@ export function ShippingForm({ address, onChange, errors = {} }: ShippingFormPro
           )}
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="ward-select" className="text-sm font-medium text-gray-700">
+          <label htmlFor="ward-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {t("shipping.ward")}
           </label>
           <select

@@ -12,11 +12,11 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("cart.title")}</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">{t("cart.title")}</h1>
 
       {items.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-gray-500">{t("cart.empty")}</p>
+          <p className="text-gray-500 dark:text-gray-400">{t("cart.empty")}</p>
           <Link
             href="/products"
             className="mt-4 inline-block text-amber-600 hover:underline"

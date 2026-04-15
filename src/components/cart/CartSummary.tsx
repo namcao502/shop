@@ -15,10 +15,10 @@ export function CartSummary({ subtotal, itemCount }: CartSummaryProps) {
   const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
 
   return (
-    <div className="rounded-lg border bg-gray-50 p-6">
-      <h2 className="text-lg font-medium text-gray-900">{t("cart.orderSummary")}</h2>
+    <div className="rounded-lg border bg-gray-50 p-6 dark:border-stone-700 dark:bg-stone-800/60">
+      <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{t("cart.orderSummary")}</h2>
       <div className="mt-4 flex justify-between text-sm">
-        <span className="text-gray-600">
+        <span className="text-gray-600 dark:text-gray-400">
           {t("cart.subtotal")} ({itemCount} {itemCount === 1 ? t("orders.item") : t("orders.items")})
         </span>
         <span className="font-medium">{formatPrice(subtotal, fmtLocale)}</span>

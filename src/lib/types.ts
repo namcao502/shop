@@ -8,6 +8,7 @@ export interface Product {
   slug: string;
   description: string;
   price: number;
+  discountPrice?: number;
   images: string[];
   categoryId: string;
   stock: number;

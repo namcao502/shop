@@ -61,7 +61,7 @@ export default function OrdersPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">{t("orders.signInRequired")}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("orders.signInRequired")}</h1>
         <Button className="mt-4" onClick={signIn}>
           {t("nav.signIn")}
         </Button>
@@ -71,7 +71,7 @@ export default function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("orders.title")}</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">{t("orders.title")}</h1>
 
       {loading ? (
         <div className="space-y-3">
@@ -80,7 +80,7 @@ export default function OrdersPage() {
           ))}
         </div>
       ) : orders.length === 0 ? (
-        <p className="py-12 text-center text-gray-500">{t("orders.noOrders")}</p>
+        <p className="py-12 text-center text-gray-500 dark:text-gray-400">{t("orders.noOrders")}</p>
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (

@@ -192,7 +192,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">{t("order.notFound")}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("order.notFound")}</h1>
       </div>
     );
   }
@@ -206,31 +206,31 @@ export default function OrderDetailPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t("order.order")} {order.orderCode}
         </h1>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-500 dark:text-gray-400">
           {formatDate(order.createdAt, fmtLocale)}
         </span>
       </div>
 
       {/* Timeline */}
-      <div className="mb-8 rounded-lg border p-6">
+      <div className="mb-8 rounded-lg border p-6 dark:border-stone-700">
         <OrderTimeline currentStatus={order.orderStatus} />
       </div>
 
       {/* Status badges */}
       <div className="mb-6 flex gap-3">
         <div>
-          <span className="text-xs text-gray-500">{t("order.payment")}</span>{" "}
+          <span className="text-xs text-gray-500 dark:text-gray-400">{t("order.payment")}</span>{" "}
           <Badge variant={order.paymentStatus}>{t(`status.${order.paymentStatus}` as TranslationKey)}</Badge>
         </div>
         <div>
-          <span className="text-xs text-gray-500">{t("order.order")}</span>{" "}
+          <span className="text-xs text-gray-500 dark:text-gray-400">{t("order.order")}</span>{" "}
           <Badge variant={order.orderStatus}>{t(`status.${order.orderStatus}` as TranslationKey)}</Badge>
         </div>
         <div>
-          <span className="text-xs text-gray-500">{t("order.method")}</span>{" "}
+          <span className="text-xs text-gray-500 dark:text-gray-400">{t("order.method")}</span>{" "}
           <span className="text-sm font-medium">
             {order.paymentMethod === "vietqr" ? t("order.bankTransfer") : t("order.momo")}
           </span>
@@ -239,8 +239,8 @@ export default function OrderDetailPage() {
 
       {/* Payment section -- shown when order is awaiting payment */}
       {showPayment && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <p className="mb-3 text-sm font-medium text-amber-800">
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-700/50 dark:bg-amber-900/20">
+          <p className="mb-3 text-sm font-medium text-amber-800 dark:text-amber-300">
             {t("order.pendingPayment")}
           </p>
           {order.paymentMethod === "vietqr" && !qrUrl && (
@@ -269,7 +269,7 @@ export default function OrderDetailPage() {
 
       {/* Action bar */}
       {(showCancel || showUpdateAddress || showDelete) && (
-        <div className="mb-6 rounded-lg border p-4">
+        <div className="mb-6 rounded-lg border p-4 dark:border-stone-700">
           <div className="flex flex-wrap gap-2">
             {showCancel && (
               <button
@@ -284,7 +284,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={openAddressForm}
                 disabled={saving}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
               >
                 {t("order.updateAddress")}
               </button>
@@ -293,7 +293,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={handleDelete}
                 disabled={saving}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:border-stone-600 dark:text-stone-400 dark:hover:bg-stone-700"
               >
                 {t("order.deleteOrder")}
               </button>
@@ -302,7 +302,7 @@ export default function OrderDetailPage() {
 
           {/* Inline address edit form */}
           {addressFormOpen && draftAddress && (
-            <div className="mt-4 border-t pt-4">
+            <div className="mt-4 border-t pt-4 dark:border-stone-700">
               <ShippingForm
                 address={draftAddress}
                 onChange={(addr) => setDraftAddress(addr)}
@@ -318,7 +318,7 @@ export default function OrderDetailPage() {
                 <button
                   onClick={() => { setAddressFormOpen(false); setDraftAddress(null); }}
                   disabled={saving}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
                 >
                   {t("form.cancel")}
                 </button>
@@ -329,14 +329,14 @@ export default function OrderDetailPage() {
       )}
 
       {/* Items */}
-      <div className="rounded-lg border p-4">
-        <h2 className="mb-3 font-medium text-gray-900">{t("order.itemsTitle")}</h2>
+      <div className="rounded-lg border p-4 dark:border-stone-700">
+        <h2 className="mb-3 font-medium text-gray-900 dark:text-gray-100">{t("order.itemsTitle")}</h2>
         {order.items.map((item, i) => (
           <div
             key={i}
-            className="flex justify-between border-b py-2 last:border-0"
+            className="flex justify-between border-b py-2 last:border-0 dark:border-stone-700"
           >
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
               {item.name} x {item.qty}
             </span>
             <span className="text-sm font-medium">
@@ -344,13 +344,13 @@ export default function OrderDetailPage() {
             </span>
           </div>
         ))}
-        <div className="mt-3 space-y-1 border-t pt-3 text-sm">
+        <div className="mt-3 space-y-1 border-t pt-3 text-sm dark:border-stone-700">
           <div className="flex justify-between">
-            <span className="text-gray-500">{t("order.subtotal")}</span>
+            <span className="text-gray-500 dark:text-gray-400">{t("order.subtotal")}</span>
             <span>{formatPrice(order.subtotal, fmtLocale)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">{t("order.shipping")}</span>
+            <span className="text-gray-500 dark:text-gray-400">{t("order.shipping")}</span>
             <span>{formatPrice(order.shippingFee, fmtLocale)}</span>
           </div>
           <div className="flex justify-between text-base font-bold">
@@ -363,15 +363,15 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Shipping address */}
-      <div className="mt-4 rounded-lg border p-4">
-        <h2 className="mb-2 font-medium text-gray-900">{t("order.shippingAddress")}</h2>
-        <p className="text-sm text-gray-600">
+      <div className="mt-4 rounded-lg border p-4 dark:border-stone-700">
+        <h2 className="mb-2 font-medium text-gray-900 dark:text-gray-100">{t("order.shippingAddress")}</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           {order.shippingAddress.name} - {order.shippingAddress.phone}
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           {order.shippingAddress.address}, {order.shippingAddress.ward}
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           {order.shippingAddress.province}
         </p>
       </div>

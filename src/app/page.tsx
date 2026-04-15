@@ -34,10 +34,10 @@ export default function HomePage() {
       {/* Hero */}
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl">
             {t("home.hero.title")}
           </h1>
-          <p className="mt-4 text-base text-stone-500 sm:text-lg">
+          <p className="mt-4 text-base text-stone-500 dark:text-stone-300 sm:text-lg">
             {t("home.hero.subtitle")}
           </p>
           <Link href="/products">
@@ -48,7 +48,7 @@ export default function HomePage() {
               {t("home.browseAll")}
             </Button>
           </Link>
-          <p className="mt-3 text-sm text-stone-400">
+          <p className="mt-3 text-sm text-stone-400 dark:text-stone-300">
             {t("home.hero.freeShipping")}
           </p>
         </div>
@@ -56,9 +56,9 @@ export default function HomePage() {
 
       {/* Featured Products */}
       <section className="mx-auto max-w-7xl px-4 py-12">
-        <div className="rounded-2xl border border-white/80 bg-white/55 p-5 shadow-sm backdrop-blur-md">
+        <div className="rounded-2xl border border-white/80 bg-white/55 p-5 shadow-sm backdrop-blur-md dark:border-stone-700/50 dark:bg-stone-800/40">
           <div className="mb-6">
-            <h2 className="text-2xl font-extrabold tracking-tight text-stone-900">
+            <h2 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-100">
               {t("home.featured")}
             </h2>
             <div className="mt-1 h-0.5 w-7 rounded bg-amber-500" />

@@ -27,7 +27,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
   // Mobile: horizontal tab bar at top
   if (mobile) {
     return (
-      <div className="flex items-center gap-1 border-b border-stone-100 theme-header-bg px-3 py-2 md:hidden">
+      <div className="flex items-center gap-1 border-b border-stone-100 theme-header-bg px-3 py-2 dark:border-stone-700 md:hidden">
         {links.map((link) => {
           const isActive =
             link.href === "/admin"
@@ -40,7 +40,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                 isActive
                   ? "theme-active-bg theme-active-text"
-                  : "text-stone-600 hover:bg-stone-50"
+                  : "text-stone-600 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-700/50"
               }`}
             >
               <span>{SIDEBAR_ICONS[link.href]}</span>
@@ -48,7 +48,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
             </Link>
           );
         })}
-        <Link href="/" className="ml-auto text-xs text-stone-400 hover:text-stone-600">
+        <Link href="/" className="ml-auto text-xs text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300">
           ← {t("admin.backToShop")}
         </Link>
       </div>
@@ -57,9 +57,9 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
 
   // Desktop: vertical sidebar
   return (
-    <aside className="flex h-full w-56 flex-col border-r border-stone-100 theme-sidebar-bg">
+    <aside className="flex h-full w-56 flex-col border-r border-stone-100 theme-sidebar-bg dark:border-stone-700">
       <div className="p-4">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-stone-400">{t("admin.title")}</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">{t("admin.title")}</h2>
       </div>
       <nav className="space-y-1 px-2">
         {links.map((link) => {
@@ -74,7 +74,7 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
                   ? "border-l-2 theme-accent-border theme-active-bg theme-active-text"
-                  : "border-l-2 border-transparent text-stone-600 hover:bg-stone-50"
+                  : "border-l-2 border-transparent text-stone-600 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-700/50"
               }`}
             >
               <span>{SIDEBAR_ICONS[link.href]}</span>
@@ -83,8 +83,8 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
           );
         })}
       </nav>
-      <div className="mt-8 border-t border-stone-100/90 px-4 pt-4">
-        <Link href="/" className="text-sm text-stone-400 transition-colors hover:text-stone-600">
+      <div className="mt-8 border-t border-stone-100/90 px-4 pt-4 dark:border-stone-700">
+        <Link href="/" className="text-sm text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300">
           ← {t("admin.backToShop")}
         </Link>
       </div>

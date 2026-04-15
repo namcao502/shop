@@ -17,9 +17,9 @@ export function CartItem({ item, onUpdateQty, onRemove }: CartItemProps) {
   const { toast } = useToast();
   const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
   return (
-    <div className="border-b py-4">
+    <div className="border-b py-4 dark:border-stone-700">
       <div className="flex gap-3">
-        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded bg-gray-100 dark:bg-stone-700">
           <img
             src={item.image || "/placeholder.svg"}
             alt={item.name}
@@ -30,7 +30,7 @@ export function CartItem({ item, onUpdateQty, onRemove }: CartItemProps) {
           <div>
             <Link
               href={`/products/${item.slug}`}
-              className="font-medium text-gray-900 hover:underline"
+              className="font-medium text-gray-900 hover:underline dark:text-gray-100"
             >
               {item.name}
             </Link>
@@ -40,14 +40,14 @@ export function CartItem({ item, onUpdateQty, onRemove }: CartItemProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onUpdateQty(item.productId, item.qty - 1)}
-                className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
               >
                 -
               </button>
               <span className="w-8 text-center text-sm">{item.qty}</span>
               <button
                 onClick={() => onUpdateQty(item.productId, item.qty + 1)}
-                className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
               >
                 +
               </button>

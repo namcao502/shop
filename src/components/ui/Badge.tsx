@@ -4,13 +4,13 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeProps["variant"], string> = {
-  pending: "bg-amber-100 text-amber-800",
-  paid: "bg-green-100 text-green-800",
-  failed: "bg-red-100 text-red-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  shipping: "bg-purple-100 text-purple-800",
-  delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-700",
+  pending: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300",
+  paid: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
+  failed: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
+  confirmed: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
+  shipping: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
+  delivered: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
+  cancelled: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
 };
 
 export function Badge({ variant, children }: BadgeProps) {
