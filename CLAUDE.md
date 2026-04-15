@@ -37,7 +37,7 @@ Customer-facing reads (products, categories) hit Firestore directly from the cli
 
 - **Client auth:** `AuthProvider` (`src/lib/firebase/auth-context.tsx`) wraps the app; `useAuth()` gives `user`, `signIn`, `signOut`, `getIdToken`
 - **Server auth:** all API routes call `verifyAuth()` or `verifyAdminAuth()` from `src/lib/verify-admin.ts`, which verifies the Firebase ID token and checks `isAdmin` from Firestore
-- **Admin access:** set `isAdmin: true` directly on the user document in Firestore (Firebase console or via a one-off script). The middleware (`src/proxy.ts`) matches `/admin/*` routes but actual auth is enforced in the admin layout client-side and in every admin API route server-side
+- **Admin access:** set via Firebase Custom Claim using `npx tsx scripts/set-admin.ts <email-or-uid>` (revoke with `--revoke`). The claim is read from the JWT on the server (`decoded.isAdmin`) and from `getIdTokenResult()` on the client. No Firestore read is needed. The user must sign out and back in for the change to take effect. The middleware (`src/proxy.ts`) matches `/admin/*` routes but actual auth is enforced in the admin layout client-side and in every admin API route server-side
 
 ### API routes
 

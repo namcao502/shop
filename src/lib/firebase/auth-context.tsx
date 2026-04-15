@@ -45,8 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
         setFirebaseUser(fbUser);
-        const userRef = doc(db, "users", fbUser.uid);
-        const userSnap = await getDoc(userRef);
+        const [tokenResult, userSnap] = await Promise.all([
+          fbUser.getIdTokenResult(),
+          getDoc(doc(db, "users", fbUser.uid)),
+        ]);
+        const isAdmin = tokenResult.claims.isAdmin === true;
 
         if (userSnap.exists()) {
           const data = userSnap.data();
@@ -55,26 +58,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: data.email,
             displayName: data.displayName,
             photoURL: data.photoURL,
-            isAdmin: data.isAdmin ?? false,
+            isAdmin,
             createdAt: data.createdAt?.toDate() ?? new Date(),
           });
         } else {
-          const newUser: Omit<AppUser, "id" | "createdAt"> & {
+          const newUser: Omit<AppUser, "id" | "isAdmin" | "createdAt"> & {
             createdAt: ReturnType<typeof serverTimestamp>;
           } = {
             email: fbUser.email ?? "",
             displayName: fbUser.displayName ?? "",
             photoURL: fbUser.photoURL ?? "",
-            isAdmin: false,
             createdAt: serverTimestamp(),
           };
-          await setDoc(userRef, newUser);
+          await setDoc(doc(db, "users", fbUser.uid), newUser);
           setUser({
             id: fbUser.uid,
             email: newUser.email,
             displayName: newUser.displayName,
             photoURL: newUser.photoURL,
-            isAdmin: false,
+            isAdmin,
             createdAt: new Date(),
           });
         }

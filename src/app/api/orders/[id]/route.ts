@@ -29,7 +29,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await verifyAuth(request.headers.get("Authorization"), { needsAdmin: true });
+  const authResult = await verifyAuth(request.headers.get("Authorization"));
   if (!authResult) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

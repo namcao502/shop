@@ -5,11 +5,12 @@ A full-stack e-commerce storefront for Vietnamese souvenirs, built with Next.js 
 ## Stack
 
 - **Framework:** Next.js 16 App Router, React 19, TypeScript
-- **Styling:** Tailwind CSS
+- **Styling:** Tailwind CSS, dark mode, dynamic HSL theme with rainbow mode
 - **Backend:** Firebase 12 (Auth, Firestore, Storage) via Admin SDK in API routes
 - **Payments:** VietQR (bank transfer QR), MoMo (e-wallet)
 - **Validation:** Zod 4
 - **i18n:** Vietnamese / English (client-side, localStorage-persisted)
+- **Discounts:** Site-wide percentage discount configurable from the admin panel
 
 ## Getting Started
 
@@ -66,7 +67,7 @@ Customer reads (products, categories) hit Firestore directly from the client. Al
 
 - **Client:** `AuthProvider` + `useAuth()` in `src/lib/firebase/auth-context.tsx`
 - **Server:** `verifyAuth()` / `verifyAdminAuth()` in `src/lib/verify-admin.ts` — verifies Firebase ID token and `isAdmin` flag
-- **Admin access:** set `isAdmin: true` on the user document in Firestore
+- **Admin access:** set the `isAdmin` custom claim via `npx tsx scripts/set-admin.ts <email-or-uid>`; revoke with `--revoke`. The user must sign out and back in for the claim to take effect.
 
 ### API routes
 
@@ -80,6 +81,7 @@ Customer reads (products, categories) hit Firestore directly from the client. Al
 | `/api/notifications/read-all` | `PATCH` | Marks all notifications read for the current user |
 | `/api/products` | `POST` | Create product (admin only) |
 | `/api/products/[id]` | `PUT`, `DELETE` | Update or delete product (admin only) |
+| `/api/settings/discount` | `GET`, `PUT` | Read or update site-wide discount setting (admin only) |
 
 ### Order flow
 
@@ -96,6 +98,14 @@ Customer reads (products, categories) hit Firestore directly from the client. Al
 
 Called server-side on order creation and client-side in the checkout summary.
 
+### Discounts
+
+Admin can set a site-wide percentage discount from the admin settings panel. The discount is applied to all product prices at checkout. Stored in Firestore and enforced server-side on order creation.
+
+### Theme
+
+`ThemeProvider` (`src/lib/theme-context.tsx`) exposes `hue` (0-360) and `rainbow` (boolean) state, persisted in `localStorage`. A `ThemePicker` in the header lets users drag a hue slider or enable rainbow mode (hue cycles automatically). The `--theme-hue` CSS variable drives `.theme-accent` utility classes used on buttons, badges, and accent surfaces. Dark mode is supported across all pages and components.
+
 ### Cart
 
 Stored in `localStorage` only. Shared via `CartProvider` (`src/lib/cart-context.tsx`). Quantities are validated against live Firestore stock when the checkout page loads.
@@ -103,6 +113,14 @@ Stored in `localStorage` only. Shared via `CartProvider` (`src/lib/cart-context.
 ### Notifications
 
 `writeNotification(data, tx?)` in `src/lib/notifications.ts`. Pass a transaction `tx` to write atomically (order creation), or omit for fire-and-forget (MoMo callback). Displayed via `NotificationBell` in the header.
+
+### Confirm dialog
+
+`useConfirm()` from `src/lib/confirm-context.tsx` returns an async `confirm(message)` that resolves `true`/`false`. Use instead of `window.confirm`. Mounted globally in `layout.tsx`.
+
+### Toast notifications
+
+`useToast()` from `src/lib/toast-context.tsx` returns `toast(message, variant?)`. Variants: `"info"`, `"success"`, `"error"`. Mounted globally in `layout.tsx`.
 
 ### i18n
 
@@ -125,6 +143,7 @@ src/app/
     page.tsx                # dashboard (KPIs, recent orders, top products)
     orders/page.tsx         # order management
     products/page.tsx       # product CRUD with image upload
+    settings/page.tsx       # site-wide settings (discount)
 ```
 
 ## Firestore security rules
