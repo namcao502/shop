@@ -206,7 +206,7 @@ export default function OrderDetailPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="font-display text-2xl font-bold text-stone-900 dark:text-stone-100">
           {t("order.order")} {order.orderCode}
         </h1>
         <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -215,7 +215,7 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Timeline */}
-      <div className="mb-8 rounded-lg border p-6 dark:border-stone-700">
+      <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm dark:bg-stone-800">
         <OrderTimeline currentStatus={order.orderStatus} />
       </div>
 
@@ -239,7 +239,7 @@ export default function OrderDetailPage() {
 
       {/* Payment section -- shown when order is awaiting payment */}
       {showPayment && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-700/50 dark:bg-amber-900/20">
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-700/50 dark:bg-amber-900/20">
           <p className="mb-3 text-sm font-medium text-amber-800 dark:text-amber-300">
             {t("order.pendingPayment")}
           </p>
@@ -269,7 +269,7 @@ export default function OrderDetailPage() {
 
       {/* Action bar */}
       {(showCancel || showUpdateAddress || showDelete) && (
-        <div className="mb-6 rounded-lg border p-4 dark:border-stone-700">
+        <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-800">
           <div className="flex flex-wrap gap-2">
             {showCancel && (
               <button
@@ -329,7 +329,7 @@ export default function OrderDetailPage() {
       )}
 
       {/* Items */}
-      <div className="rounded-lg border p-4 dark:border-stone-700">
+      <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-800">
         <h2 className="mb-3 font-medium text-gray-900 dark:text-gray-100">{t("order.itemsTitle")}</h2>
         {order.items.map((item, i) => (
           <div
@@ -363,7 +363,7 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Shipping address */}
-      <div className="mt-4 rounded-lg border p-4 dark:border-stone-700">
+      <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-800">
         <h2 className="mb-2 font-medium text-gray-900 dark:text-gray-100">{t("order.shippingAddress")}</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           {order.shippingAddress.name} - {order.shippingAddress.phone}

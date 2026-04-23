@@ -16,14 +16,14 @@ export function TopProducts({ products }: TopProductsProps) {
   const maxSold = Math.max(...products.map((p) => p.sold), 1);
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm">
-      <h3 className="mb-3 font-medium text-stone-900">{t("admin.topSelling")}</h3>
+    <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-stone-800">
+      <h3 className="mb-3 font-medium text-stone-900 dark:text-stone-100">{t("admin.topSelling")}</h3>
       <div className="space-y-3">
         {products.map((p) => (
           <div key={p.name} className="flex items-center justify-between">
-            <span className="text-sm text-stone-700">{p.name}</span>
+            <span className="text-sm text-stone-700 dark:text-stone-300">{p.name}</span>
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-20 overflow-hidden rounded-full bg-stone-200">
+              <div className="h-1.5 w-20 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-700">
                 <div
                   className="h-full rounded-full bg-amber-500"
                   style={{ width: `${(p.sold / maxSold) * 100}%` }}

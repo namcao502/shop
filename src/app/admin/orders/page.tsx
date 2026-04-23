@@ -109,7 +109,10 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold text-gray-900">{t("admin.orders")}</h1>
+      <h1 className="font-display mb-3 text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+        {t("admin.orders")}
+      </h1>
+      <div className="mb-6 h-0.5 w-8 rounded-full bg-amber-400" />
 
       {actionError && (
         <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{actionError}</p>
@@ -117,13 +120,13 @@ export default function AdminOrdersPage() {
 
       <div className="space-y-3">
         {orders.map((order) => (
-          <div key={order.id} className="rounded-lg border bg-white p-4">
+          <div key={order.id} className="rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-800">
             <div className="flex items-start justify-between">
               <div>
                 <span className="font-mono text-sm font-bold">
                   {order.orderCode}
                 </span>
-                <span className="ml-3 text-sm text-gray-500">
+                <span className="ml-3 text-sm text-stone-500 dark:text-stone-400">
                   {formatDate(order.createdAt, locale === "vi" ? "vi-VN" : "en-US")}
                 </span>
               </div>
@@ -135,12 +138,12 @@ export default function AdminOrdersPage() {
             <div className="mt-2 flex gap-2">
               <Badge variant={order.paymentStatus}>{t(`status.${order.paymentStatus}` as TranslationKey)}</Badge>
               <Badge variant={order.orderStatus}>{t(`status.${order.orderStatus}` as TranslationKey)}</Badge>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-stone-500 dark:text-stone-400">
                 {order.paymentMethod === "vietqr" ? t("order.bankTransfer") : t("order.momo")}
               </span>
             </div>
 
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-2 text-sm text-stone-600 dark:text-stone-300">
               {order.items.map((item, i) => (
                 <span key={i}>
                   {item.name} x{item.qty}
@@ -149,7 +152,7 @@ export default function AdminOrdersPage() {
               ))}
             </div>
 
-            <div className="mt-2 text-xs text-gray-500">
+            <div className="mt-2 text-xs text-stone-500 dark:text-stone-400">
               {t("admin.shipTo")} {order.shippingAddress.name},{" "}
               {order.shippingAddress.ward}, {order.shippingAddress.province}
             </div>

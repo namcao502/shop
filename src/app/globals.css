@@ -19,9 +19,36 @@
   }
 }
 
+/* Playfair Display — applied via .font-display class */
+.font-display {
+  font-family: var(--font-display), "Playfair Display", Georgia, serif;
+}
+
+/* Blob float animations (hero decorations) */
+@keyframes blob-float-1 {
+  0%   { transform: translate(0,0) scale(1) rotate(0deg); }
+  33%  { transform: translate(18px,-22px) scale(1.03) rotate(2deg); }
+  66%  { transform: translate(-12px,14px) scale(0.97) rotate(-1.5deg); }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); }
+}
+@keyframes blob-float-2 {
+  0%   { transform: translate(0,0) scale(1) rotate(0deg); }
+  40%  { transform: translate(-20px,16px) scale(1.04) rotate(-2deg); }
+  75%  { transform: translate(14px,-10px) scale(0.96) rotate(1deg); }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); }
+}
+@keyframes blob-float-3 {
+  0%   { transform: translate(0,0) scale(1) rotate(0deg); }
+  50%  { transform: translate(10px,20px) scale(1.02) rotate(1.5deg); }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); }
+}
+.blob-float-1 { animation: blob-float-1 12s ease-in-out infinite; }
+.blob-float-2 { animation: blob-float-2 15s ease-in-out infinite; }
+.blob-float-3 { animation: blob-float-3 10s ease-in-out infinite; }
+
 body {
   color: var(--color-foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), "DM Sans", Arial, sans-serif;
   min-height: 100dvh;
   position: relative;
 }

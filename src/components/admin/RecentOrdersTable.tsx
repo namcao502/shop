@@ -16,13 +16,13 @@ export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
   const fmtLocale = locale === "vi" ? "vi-VN" : "en-US";
 
   return (
-    <div className="rounded-xl bg-white shadow-sm">
-      <div className="border-b border-stone-100 px-4 py-3">
-        <h3 className="font-medium text-stone-900">{t("admin.recentOrders")}</h3>
+    <div className="rounded-2xl bg-white shadow-sm dark:bg-stone-800">
+      <div className="border-b border-stone-100 px-4 py-3 dark:border-stone-700">
+        <h3 className="font-display font-semibold text-stone-900 dark:text-stone-100">{t("admin.recentOrders")}</h3>
       </div>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b text-left text-xs uppercase text-stone-500">
+          <tr className="border-b text-left text-xs uppercase text-stone-500 dark:border-stone-700">
             <th className="px-4 py-2">{t("admin.colOrder")}</th>
             <th className="px-4 py-2">{t("admin.colAmount")}</th>
             <th className="px-4 py-2">{t("admin.colPayment")}</th>
@@ -32,7 +32,7 @@ export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
         </thead>
         <tbody>
           {orders.map((order) => (
-            <tr key={order.id} className="border-b last:border-0">
+            <tr key={order.id} className="border-b last:border-0 dark:border-stone-700">
               <td className="px-4 py-2">
                 <Link
                   href={`/admin/orders?highlight=${order.id}`}
@@ -41,7 +41,7 @@ export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                   {order.orderCode}
                 </Link>
               </td>
-              <td className="px-4 py-2">{formatPrice(order.totalAmount, fmtLocale)}</td>
+              <td className="px-4 py-2 text-stone-700 dark:text-stone-300">{formatPrice(order.totalAmount, fmtLocale)}</td>
               <td className="px-4 py-2">
                 <Badge variant={order.paymentStatus}>
                   {t(`status.${order.paymentStatus}` as TranslationKey)}

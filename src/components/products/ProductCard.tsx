@@ -40,35 +40,41 @@ export function ProductCard({ product, siteWide }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:bg-stone-800 dark:shadow-stone-900/50"
+      className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl dark:bg-stone-800 dark:shadow-stone-900/50"
     >
-      <div className="relative aspect-square overflow-hidden bg-stone-100">
+      <div className="relative overflow-hidden bg-stone-100" style={{ aspectRatio: "3/4" }}>
         {thumbnail && !imgError ? (
           <img
             src={thumbnail}
             alt={product.name}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={() => setImgError(true)}
           />
         ) : (
           <BrokenImageIcon />
         )}
         {hasDiscount && (
-          <div className="absolute left-2 top-2 rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white">
+          <div className="absolute left-2 top-2 rounded-full bg-red-600 px-2.5 py-0.5 text-xs font-bold text-white">
             -{pct}%
           </div>
         )}
-        {outOfStock && (
+        {outOfStock ? (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-            <span className="rounded bg-white px-3 py-1 text-sm font-medium text-stone-900">
+            <span className="rounded-full bg-white px-3 py-1 text-sm font-medium text-stone-900">
               {t("product.outOfStock")}
+            </span>
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-stone-900/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <span className="text-xs font-semibold uppercase tracking-widest text-white">
+              {locale === "vi" ? "Xem chi tiet" : "View Details"} →
             </span>
           </div>
         )}
       </div>
       <div className="p-4">
-        <h3 className="text-sm font-medium text-stone-900 dark:text-stone-100">{product.name}</h3>
-        <p className="mt-1 text-lg font-bold text-amber-600">
+        <h3 className="font-display text-sm font-semibold text-stone-900 dark:text-stone-100">{product.name}</h3>
+        <p className="mt-1 text-base font-bold text-amber-600">
           {formatPrice(effectivePrice, fmtLocale)}
         </p>
         {hasDiscount && (

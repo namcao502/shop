@@ -71,12 +71,15 @@ export default function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">{t("orders.title")}</h1>
+      <h1 className="font-display mb-3 text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+        {t("orders.title")}
+      </h1>
+      <div className="mb-8 h-0.5 w-8 rounded-full bg-amber-400" />
 
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-24 animate-pulse rounded-lg bg-gray-200" />
+            <div key={i} className="animate-pulse rounded-2xl bg-stone-200 dark:bg-stone-700" style={{ height: '96px' }} />
           ))}
         </div>
       ) : orders.length === 0 ? (

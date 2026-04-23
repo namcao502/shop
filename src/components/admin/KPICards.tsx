@@ -18,9 +18,9 @@ const accentBorder: Record<KPIAccent, string> = {
 };
 
 const valueColour: Record<KPIAccent, string> = {
-  primary: "text-stone-900",
+  primary: "text-stone-900 dark:text-stone-100",
   warning: "text-amber-600",
-  neutral: "text-stone-900",
+  neutral: "text-stone-900 dark:text-stone-100",
 };
 
 export function KPICards({ kpis }: KPICardsProps) {
@@ -31,7 +31,7 @@ export function KPICards({ kpis }: KPICardsProps) {
         return (
           <div
             key={kpi.label}
-            className={`rounded-xl bg-white p-4 shadow-sm ${accentBorder[accent]}`}
+            className={`rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-800 ${accentBorder[accent]}`}
           >
             <p className="text-xs font-semibold uppercase tracking-widest text-stone-400">
               {kpi.label}

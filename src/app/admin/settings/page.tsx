@@ -66,13 +66,16 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("admin.settings")}</h1>
+      <h1 className="font-display mb-3 text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+        {t("admin.settings")}
+      </h1>
+      <div className="mb-8 h-0.5 w-8 rounded-full bg-amber-400" />
 
-      <div className="rounded-lg border bg-white p-6">
+      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-stone-800">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">{t("admin.siteWideSale")}</h2>
-            <p className="text-sm text-gray-500">{t("admin.siteWideSaleDesc")}</p>
+            <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100">{t("admin.siteWideSale")}</h2>
+            <p className="text-sm text-stone-500 dark:text-stone-400">{t("admin.siteWideSaleDesc")}</p>
           </div>
           <button
             type="button"
@@ -98,7 +101,7 @@ export default function AdminSettingsPage() {
             onChange={(e) => setInputValue(e.target.value)}
             className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
           />
-          <span className="text-sm text-gray-500">{t("admin.percentOffAll")}</span>
+          <span className="text-sm text-stone-500 dark:text-stone-400">{t("admin.percentOffAll")}</span>
           <Button
             size="sm"
             disabled={saving}
@@ -114,7 +117,7 @@ export default function AdminSettingsPage() {
         </div>
 
         {settings.active && (
-          <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700">
+          <p className="mt-4 rounded-2xl bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
             {t("admin.siteWideSaleActive").replace("{value}", settings.value.toString())}
           </p>
         )}

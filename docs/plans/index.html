@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>South Tomorrow — Handmade Wool Figures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cream: oklch(96.5% 0.022 82);
+    --cream-deep: oklch(93% 0.03 80);
+    --yellow: oklch(84% 0.13 85);
+    --yellow-pale: oklch(91% 0.07 88);
+    --olive: oklch(68% 0.09 100);
+    --brown: oklch(28% 0.04 55);
+    --brown-light: oklch(55% 0.05 55);
+    --accent: oklch(72% 0.12 50);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    overflow-x: hidden;
+  }
+  #root { min-height: 100vh; }
+
+  /* --- Blob animations --- */
+  @keyframes blobFloat1 {
+    0%   { transform: translate(0,0) scale(1) rotate(0deg); }
+    33%  { transform: translate(18px,-22px) scale(1.03) rotate(2deg); }
+    66%  { transform: translate(-12px,14px) scale(0.97) rotate(-1.5deg); }
+    100% { transform: translate(0,0) scale(1) rotate(0deg); }
+  }
+  @keyframes blobFloat2 {
+    0%   { transform: translate(0,0) scale(1) rotate(0deg); }
+    40%  { transform: translate(-20px,16px) scale(1.04) rotate(-2deg); }
+    75%  { transform: translate(14px,-10px) scale(0.96) rotate(1deg); }
+    100% { transform: translate(0,0) scale(1) rotate(0deg); }
+  }
+  @keyframes blobFloat3 {
+    0%   { transform: translate(0,0) scale(1) rotate(0deg); }
+    50%  { transform: translate(10px,20px) scale(1.02) rotate(1.5deg); }
+    100% { transform: translate(0,0) scale(1) rotate(0deg); }
+  }
+  .blob-float-1 { animation: blobFloat1 12s ease-in-out infinite; }
+  .blob-float-2 { animation: blobFloat2 15s ease-in-out infinite; }
+  .blob-float-3 { animation: blobFloat3 10s ease-in-out infinite; }
+
+  /* --- Responsive grids --- */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+  }
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+  }
+  .story-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .story-photo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Tablet */
+  @media (max-width: 900px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .process-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .story-grid { grid-template-columns: 1fr; gap: 40px; }
+  }
+  /* Mobile */
+  @media (max-width: 600px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .process-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+    .story-grid { grid-template-columns: 1fr; gap: 32px; }
+  }
+
+  /* Nav links hidden on mobile */
+  .nav-links { display: flex; gap: 36px; }
+  .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+  @media (max-width: 700px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; flex-direction: column; gap: 5px; }
+  }
+
+  /* Mobile menu drawer */
+  .mobile-menu {
+    position: fixed; inset: 0; z-index: 99;
+    background: var(--cream);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 32px;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+  }
+  .mobile-menu.open { transform: translateX(0); }
+
+  /* Hero responsive */
+  .hero-figure {
+    position: absolute; right: 8vw; top: 50%;
+    transform: translateY(-50%);
+    width: clamp(240px, 28vw, 380px);
+    aspect-ratio: 3/4;
+    zIndex: 1;
+  }
+  @media (max-width: 860px) {
+    .hero-figure { display: none; }
+  }
+
+  /* Email row */
+  .email-row { display: flex; gap: 12px; max-width: 440px; margin: 0 auto; }
+  @media (max-width: 500px) {
+    .email-row { flex-direction: column; }
+    .email-row input { border-radius: 14px !important; }
+    .email-row button { border-radius: 14px !important; }
+  }
+
+  /* Modal responsive */
+  .modal-inner {
+    background: var(--cream); border-radius: 32px;
+    max-width: 700px; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    box-shadow: 0 40px 120px oklch(28% 0.04 55 / 0.3);
+    max-height: 90vh;
+  }
+  @media (max-width: 620px) {
+    .modal-inner {
+      grid-template-columns: 1fr;
+      border-radius: 24px 24px 0 0;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .modal-img { aspect-ratio: 16/9 !important; min-height: unset !important; }
+  }
+
+  /* Section padding responsive */
+  .section-pad { padding: 100px 10vw; }
+  @media (max-width: 700px) {
+    .section-pad { padding: 64px 6vw; }
+  }
+
+  /* Footer responsive */
+  .footer-inner {
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 20px;
+  }
+  @media (max-width: 600px) {
+    .footer-inner { flex-direction: column; align-items: flex-start; gap: 14px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accentColor": "oklch(84% 0.13 85)",
+  "heroTitle": "Handmade with heart,\nstitch by stitch.",
+  "showAbout": true
+}/*EDITMODE-END*/;
+
+// ---- Blobs ----
+const BlobA = ({ style, className }) => (
+  <svg viewBox="0 0 400 400" style={style} className={className} xmlns="http://www.w3.org/2000/svg">
+    <path d="M300,80 C370,100 410,180 380,270 C350,360 240,400 160,370 C80,340 20,260 40,170 C60,80 130,20 210,30 C260,37 280,65 300,80Z" fill="currentColor"/>
+  </svg>
+);
+const BlobB = ({ style, className }) => (
+  <svg viewBox="0 0 300 300" style={style} className={className} xmlns="http://www.w3.org/2000/svg">
+    <path d="M220,40 C270,70 290,140 260,200 C230,260 150,290 90,260 C30,230 10,150 40,90 C70,30 140,0 190,20 C205,25 215,34 220,40Z" fill="currentColor"/>
+  </svg>
+);
+const BlobC = ({ style, className }) => (
+  <svg viewBox="0 0 350 350" style={style} className={className} xmlns="http://www.w3.org/2000/svg">
+    <path d="M180,20 C250,10 330,60 340,140 C350,220 300,310 220,330 C140,350 50,300 20,220 C-10,140 30,40 100,20 C130,12 158,23 180,20Z" fill="currentColor"/>
+  </svg>
+);
+
+// ---- Product placeholder ----
+const ProductPlaceholder = ({ index }) => {
+  const hues = [82, 95, 65, 50];
+  const hue = hues[index % hues.length];
+  return (
+    <div style={{ width:'100%', height:'100%', background:`oklch(88% 0.06 ${hue})`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8 }}>
+      <svg width="64" height="64" viewBox="0 0 72 72" fill="none">
+        <ellipse cx="36" cy="26" rx="16" ry="18" fill={`oklch(72% 0.1 ${hue})`}/>
+        <ellipse cx="36" cy="26" rx="9" ry="10" fill={`oklch(82% 0.08 ${hue})`}/>
+        <rect x="22" y="42" width="28" height="20" rx="8" fill={`oklch(72% 0.1 ${hue})`}/>
+        <ellipse cx="28" cy="42" rx="7" ry="14" fill={`oklch(72% 0.1 ${hue})`} transform="rotate(-15 28 42)"/>
+        <ellipse cx="44" cy="42" rx="7" ry="14" fill={`oklch(72% 0.1 ${hue})`} transform="rotate(15 44 42)"/>
+      </svg>
+      <span style={{ fontFamily:'monospace', fontSize:9, color:`oklch(45% 0.06 ${hue})`, textAlign:'center', padding:'0 12px' }}>
+        wool figure — product shot
+      </span>
+    </div>
+  );
+};
+
+// ---- useWidth hook ----
+const useWidth = () => {
+  const [w, setW] = useState(window.innerWidth);
+  useEffect(() => {
+    const h = () => setW(window.innerWidth);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return w;
+};
+
+// ---- Nav ----
+const Nav = () => {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const w = useWidth();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 30);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const links = ['Collection', 'Story', 'Process', 'Contact'];
+
+  return (
+    <>
+      <nav style={{
+        position:'fixed', top:0, left:0, right:0, zIndex:100,
+        padding: w < 500 ? '16px 20px' : '18px 48px',
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        background: (scrolled || menuOpen) ? 'rgba(250,243,228,0.95)' : 'transparent',
+        backdropFilter: (scrolled || menuOpen) ? 'blur(12px)' : 'none',
+        transition:'background 0.3s',
+      }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <svg width="30" height="30" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="14" fill="var(--brown)"/>
+            <ellipse cx="16" cy="13" rx="6" ry="7" fill="var(--yellow)"/>
+            <ellipse cx="16" cy="13" rx="3" ry="4" fill="var(--brown)"/>
+          </svg>
+          <span style={{ fontFamily:'Playfair Display', fontWeight:600, fontSize: w < 400 ? 15 : 18, letterSpacing:'-0.3px' }}>
+            South Tomorrow
+          </span>
+        </div>
+
+        <div className="nav-links">
+          {links.map(item => (
+            <a key={item} href={`#${item.toLowerCase()}`} style={{
+              textDecoration:'none', color:'var(--brown)',
+              fontWeight:500, fontSize:15, opacity:0.75, transition:'opacity 0.2s',
+            }}
+            onMouseEnter={e => e.target.style.opacity = 1}
+            onMouseLeave={e => e.target.style.opacity = 0.75}
+            >{item}</a>
+          ))}
+        </div>
+
+        <button className="hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
+          {menuOpen ? (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="2">
+              <line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/>
+            </svg>
+          ) : (
+            <>
+              <span style={{ display:'block', width:24, height:2, background:'var(--brown)', borderRadius:2 }}/>
+              <span style={{ display:'block', width:18, height:2, background:'var(--brown)', borderRadius:2 }}/>
+              <span style={{ display:'block', width:24, height:2, background:'var(--brown)', borderRadius:2 }}/>
+            </>
+          )}
+        </button>
+      </nav>
+
+      {/* Mobile drawer */}
+      <div className={`mobile-menu ${menuOpen ? 'open' : ''}`} style={{ zIndex:99 }}>
+        {links.map(item => (
+          <a key={item} href={`#${item.toLowerCase()}`}
+            onClick={() => setMenuOpen(false)}
+            style={{
+              fontFamily:'Playfair Display', fontSize:32, fontWeight:600,
+              textDecoration:'none', color:'var(--brown)', letterSpacing:'-0.5px',
+            }}
+          >{item}</a>
+        ))}
+      </div>
+    </>
+  );
+};
+
+// ---- Hero ----
+const Hero = ({ tweaks }) => {
+  const w = useWidth();
+  const isMobile = w < 860;
+  return (
+    <section style={{
+      position:'relative',
+      minHeight: isMobile ? 'auto' : '100vh',
+      display:'flex', alignItems:'center',
+      padding: isMobile ? '100px 6vw 60px' : '120px 10vw 80px',
+      overflow:'hidden',
+    }}>
+      <BlobA style={{ position:'absolute', top:-80, left:-120, width: isMobile ? 320 : 500, color:'var(--yellow)', opacity:0.7, zIndex:0 }} className="blob-float-1"/>
+      <BlobB style={{ position:'absolute', bottom:-60, left:60, width: isMobile ? 180 : 280, color:'var(--olive)', opacity:0.4, zIndex:0 }} className="blob-float-2"/>
+      <BlobC style={{ position:'absolute', top:40, right:-80, width: isMobile ? 260 : 420, color:'var(--yellow-pale)', opacity:0.8, zIndex:0 }} className="blob-float-3"/>
+
+      <div style={{ position:'relative', zIndex:1, maxWidth: isMobile ? '100%' : 560 }}>
+        <div style={{
+          display:'inline-block', background:'var(--yellow)', borderRadius:100,
+          padding:'6px 18px', marginBottom:24,
+          fontSize:13, fontWeight:500, letterSpacing:'0.08em', color:'var(--brown)',
+        }}>✦ New collection 2026</div>
+
+        <h1 style={{
+          fontFamily:'Playfair Display', fontWeight:700,
+          fontSize: isMobile ? 'clamp(34px, 9vw, 52px)' : 'clamp(40px, 5.5vw, 72px)',
+          lineHeight:1.12, letterSpacing:'-1px', whiteSpace:'pre-line', marginBottom:20,
+        }}>{tweaks.heroTitle}</h1>
+
+        {/* Inline figure on mobile */}
+        {isMobile && (
+          <div style={{ width:'70%', maxWidth:260, aspectRatio:'3/4', borderRadius:'80px 80px 48px 48px', overflow:'hidden', margin:'24px auto', boxShadow:'0 24px 60px oklch(28% 0.06 55 / 0.18)' }}>
+            <ProductPlaceholder index={0}/>
+          </div>
+        )}
+
+        <p style={{ fontSize: isMobile ? 15 : 17, lineHeight:1.7, color:'var(--brown-light)', maxWidth:420, marginBottom:36 }}>
+          Each doll and figure is lovingly shaped from pure wool — slow-made, one at a time, for people who believe in the beauty of handcraft.
+        </p>
+
+        <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+          <a href="#collection" style={{
+            background:'var(--brown)', color:'var(--cream)',
+            padding: isMobile ? '14px 28px' : '16px 36px', borderRadius:100,
+            textDecoration:'none', fontWeight:500, fontSize: isMobile ? 15 : 16,
+            transition:'transform 0.2s, box-shadow 0.2s', display:'inline-block',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 24px oklch(28% 0.04 55 / 0.25)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; }}
+          >Shop Collection</a>
+          <a href="#story" style={{
+            background:'transparent', color:'var(--brown)',
+            padding: isMobile ? '14px 28px' : '16px 36px', borderRadius:100,
+            textDecoration:'none', fontWeight:500, fontSize: isMobile ? 15 : 16,
+            border:'1.5px solid oklch(28% 0.04 55 / 0.3)',
+            transition:'border-color 0.2s', display:'inline-block',
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor='var(--brown)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor='oklch(28% 0.04 55 / 0.3)'}
+          >Our Story</a>
+        </div>
+      </div>
+
+      {/* Desktop figure */}
+      {!isMobile && (
+        <div className="hero-figure" style={{ position:'absolute', right:'8vw', top:'50%', transform:'translateY(-50%)', width:'clamp(240px,28vw,380px)', aspectRatio:'3/4', zIndex:1 }}>
+          <div style={{ width:'100%', height:'100%', borderRadius:'120px 120px 80px 80px', overflow:'hidden', boxShadow:'0 32px 80px oklch(28% 0.06 55 / 0.18)' }}>
+            <ProductPlaceholder index={0}/>
+          </div>
+          <div style={{
+            position:'absolute', bottom:24, right:-24,
+            background:'white', borderRadius:16, padding:'12px 18px',
+            boxShadow:'0 8px 30px oklch(28% 0.04 55 / 0.12)',
+            display:'flex', alignItems:'center', gap:10, minWidth:160,
+          }}>
+            <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--yellow)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>🧶</div>
+            <div>
+              <div style={{ fontSize:11, color:'var(--brown-light)' }}>100% wool</div>
+              <div style={{ fontSize:13, fontWeight:500 }}>Handcrafted</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
+
+// ---- Products ----
+const products = [
+  { name:'Lumpy the Bear', desc:'Needle-felted wool bear, hand-sculpted with earthy tones and gentle expression.', tag:'Bestseller', price:'$48' },
+  { name:'Little Hana', desc:'A soft wool doll with braided hair and hand-stitched linen dress. One of a kind.', tag:'New', price:'$62' },
+  { name:'Forest Sprite', desc:'Whimsical woodland figure in mossy greens and warm rust, fully poseable.', tag:'Limited', price:'$55' },
+  { name:'Mochi the Bunny', desc:'Plump and round, needle-felted in cream and blush, perfect for a gentle shelf presence.', tag:'New', price:'$44' },
+];
+
+const ProductCard = ({ product, index, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div onClick={() => onClick(product, index)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ cursor:'pointer', transform: hovered ? 'translateY(-8px)' : 'none', transition:'transform 0.3s ease' }}
+    >
+      <div style={{
+        aspectRatio:'3/4', borderRadius:20, overflow:'hidden',
+        marginBottom:14, position:'relative',
+        boxShadow: hovered ? '0 20px 50px oklch(28% 0.04 55 / 0.18)' : '0 4px 20px oklch(28% 0.04 55 / 0.08)',
+        transition:'box-shadow 0.3s ease',
+      }}>
+        <ProductPlaceholder index={index}/>
+        <div style={{
+          position:'absolute', top:12, left:12,
+          background: index===0 ? 'var(--brown)' : index===2 ? 'var(--accent)' : 'var(--yellow)',
+          color: index===0 ? 'var(--cream)' : 'var(--brown)',
+          borderRadius:100, padding:'3px 10px', fontSize:10, fontWeight:600, letterSpacing:'0.06em',
+        }}>{product.tag}</div>
+        <div style={{
+          position:'absolute', inset:0, background:'oklch(28% 0.04 55 / 0.4)',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          opacity: hovered ? 1 : 0, transition:'opacity 0.25s',
+        }}>
+          <span style={{ color:'white', fontWeight:500, fontSize:13, letterSpacing:'0.08em' }}>View Details →</span>
+        </div>
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+        <div style={{ flex:1, minWidth:0 }}>
+          <h3 style={{ fontFamily:'Playfair Display', fontSize:16, fontWeight:600, marginBottom:3 }}>{product.name}</h3>
+          <p style={{ fontSize:12, color:'var(--brown-light)', lineHeight:1.5 }}>{product.desc}</p>
+        </div>
+        <span style={{ fontFamily:'Playfair Display', fontSize:16, fontWeight:600, marginLeft:10, whiteSpace:'nowrap' }}>{product.price}</span>
+      </div>
+    </div>
+  );
+};
+
+// ---- Modal ----
+const Modal = ({ product, index, onClose }) => {
+  const w = useWidth();
+  useEffect(() => {
+    const onKey = e => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  if (!product) return null;
+  return (
+    <div onClick={onClose} style={{
+      position:'fixed', inset:0, zIndex:200,
+      background:'oklch(28% 0.04 55 / 0.5)',
+      display:'flex', alignItems: w < 620 ? 'flex-end' : 'center',
+      justifyContent:'center',
+      backdropFilter:'blur(6px)', padding: w < 620 ? 0 : 24,
+    }}>
+      <div onClick={e => e.stopPropagation()} className="modal-inner">
+        <div className="modal-img" style={{ aspectRatio:w < 620 ? '16/9' : '1', minHeight: w < 620 ? 'unset' : 320 }}>
+          <ProductPlaceholder index={index}/>
+        </div>
+        <div style={{ padding: w < 620 ? '28px 24px' : '40px 36px', display:'flex', flexDirection:'column', gap:16 }}>
+          <button onClick={onClose} style={{ alignSelf:'flex-end', background:'none', border:'none', cursor:'pointer', fontSize:24, color:'var(--brown-light)', lineHeight:1 }}>×</button>
+          <div>
+            <div style={{ display:'inline-block', background:'var(--yellow)', borderRadius:100, padding:'4px 14px', marginBottom:10, fontSize:11, fontWeight:600, letterSpacing:'0.08em' }}>{product.tag}</div>
+            <h2 style={{ fontFamily:'Playfair Display', fontSize: w<620 ? 24 : 28, fontWeight:700, lineHeight:1.2, marginBottom:8 }}>{product.name}</h2>
+            <p style={{ fontSize:15, lineHeight:1.7, color:'var(--brown-light)' }}>{product.desc}</p>
+          </div>
+          <div style={{ display:'flex', gap:16, alignItems:'center', marginTop:'auto' }}>
+            <span style={{ fontFamily:'Playfair Display', fontSize:26, fontWeight:700 }}>{product.price}</span>
+            <button style={{
+              flex:1, background:'var(--brown)', color:'var(--cream)',
+              border:'none', borderRadius:100, padding:'14px 24px',
+              fontSize:15, fontWeight:500, cursor:'pointer', transition:'opacity 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity=0.85}
+            onMouseLeave={e => e.currentTarget.style.opacity=1}
+            >Enquire to Buy</button>
+          </div>
+          <p style={{ fontSize:11, color:'var(--brown-light)', lineHeight:1.5 }}>Each piece is one-of-a-kind. Contact us to reserve yours.</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---- Collection ----
+const Collection = () => {
+  const [selected, setSelected] = useState(null);
+  const [selIdx, setSelIdx] = useState(null);
+  return (
+    <section id="collection" className="section-pad" style={{ background:'var(--cream-deep)' }}>
+      <div style={{ textAlign:'center', marginBottom:52 }}>
+        <p style={{ fontSize:13, fontWeight:600, letterSpacing:'0.12em', color:'var(--brown-light)', textTransform:'uppercase', marginBottom:12 }}>The Collection</p>
+        <h2 style={{ fontFamily:'Playfair Display', fontSize:'clamp(28px, 4vw, 52px)', fontWeight:700, lineHeight:1.15, letterSpacing:'-0.5px' }}>Meet the figures</h2>
+      </div>
+      <div className="product-grid">
+        {products.map((p, i) => (
+          <ProductCard key={p.name} product={p} index={i} onClick={(p,i) => { setSelected(p); setSelIdx(i); }}/>
+        ))}
+      </div>
+      <Modal product={selected} index={selIdx} onClose={() => setSelected(null)}/>
+    </section>
+  );
+};
+
+// ---- Story ----
+const Story = ({ show }) => {
+  const w = useWidth();
+  if (!show) return null;
+  return (
+    <section id="story" className="section-pad" style={{ position:'relative', overflow:'hidden' }}>
+      <BlobA style={{ position:'absolute', right:-200, top:-100, width: w<700 ? 300 : 600, color:'var(--yellow-pale)', opacity:0.6, zIndex:0 }} className="blob-float-3"/>
+      <div className="story-grid" style={{ position:'relative', zIndex:1 }}>
+        <div>
+          <p style={{ fontSize:13, fontWeight:600, letterSpacing:'0.12em', color:'var(--brown-light)', textTransform:'uppercase', marginBottom:12 }}>Our Story</p>
+          <h2 style={{ fontFamily:'Playfair Display', fontSize:'clamp(26px, 3.5vw, 46px)', fontWeight:700, lineHeight:1.2, letterSpacing:'-0.5px', marginBottom:24 }}>
+            A small start,<br/>a whole lot of<br/><em>heart.</em>
+          </h2>
+          <p style={{ fontSize:16, lineHeight:1.8, color:'var(--brown-light)', marginBottom:20 }}>
+            South Tomorrow started in a small studio, with nothing but a bag of raw wool and a deep love for making things slowly. Every figure begins with loose fibres and ends as a character with its own quiet personality.
+          </p>
+          <p style={{ fontSize:16, lineHeight:1.8, color:'var(--brown-light)' }}>
+            We don't rush. We don't mass-produce. Each piece takes days, sometimes weeks — and that's exactly how we like it.
+          </p>
+        </div>
+        <div className="story-photo-grid">
+          {[0,1,2,3].map(i => (
+            <div key={i} style={{
+              aspectRatio:'1',
+              borderRadius: i===0 ? '60px 18px 18px 18px' : i===1 ? '18px 60px 18px 18px' : i===2 ? '18px 18px 60px 18px' : '18px 18px 18px 60px',
+              overflow:'hidden', boxShadow:'0 8px 30px oklch(28% 0.04 55 / 0.1)',
+            }}>
+              <ProductPlaceholder index={i}/>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ---- Process ----
+const Process = () => {
+  const steps = [
+    { num:'01', title:'Raw Wool', desc:'We source undyed Merino wool from small ethical farms.' },
+    { num:'02', title:'Shaping', desc:'Using needle-felting and wet-felting techniques, each form is sculpted by hand.' },
+    { num:'03', title:'Details', desc:'Faces, limbs and textures are added stitch by stitch, needle by needle.' },
+    { num:'04', title:'Finishing', desc:'Each piece is named, photographed and wrapped with care before it finds its home.' },
+  ];
+  return (
+    <section id="process" className="section-pad" style={{ background:'var(--brown)', color:'var(--cream)', position:'relative', overflow:'hidden' }}>
+      <BlobB style={{ position:'absolute', left:-100, top:-50, width:400, color:'oklch(35% 0.05 55)', opacity:0.5, zIndex:0 }} className="blob-float-2"/>
+      <div style={{ position:'relative', zIndex:1 }}>
+        <div style={{ textAlign:'center', marginBottom:56 }}>
+          <p style={{ fontSize:13, fontWeight:600, letterSpacing:'0.12em', color:'oklch(80% 0.04 80)', textTransform:'uppercase', marginBottom:12 }}>How It's Made</p>
+          <h2 style={{ fontFamily:'Playfair Display', fontSize:'clamp(26px, 3.5vw, 46px)', fontWeight:700, lineHeight:1.2, letterSpacing:'-0.5px' }}>
+            The slow craft behind<br/>every figure
+          </h2>
+        </div>
+        <div className="process-grid">
+          {steps.map((step, i) => (
+            <div key={step.num} style={{
+              padding:'28px 22px',
+              background:`oklch(${32+i*2}% 0.04 55)`,
+              borderRadius:18, transition:'transform 0.25s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform='translateY(-4px)'}
+            onMouseLeave={e => e.currentTarget.style.transform=''}
+            >
+              <div style={{ fontFamily:'Playfair Display', fontSize:44, fontWeight:700, color:'var(--yellow)', opacity:0.6, marginBottom:14, lineHeight:1 }}>{step.num}</div>
+              <h3 style={{ fontFamily:'Playfair Display', fontSize:19, fontWeight:600, marginBottom:8 }}>{step.title}</h3>
+              <p style={{ fontSize:13, lineHeight:1.7, color:'oklch(78% 0.03 80)' }}>{step.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ---- Contact ----
+const Contact = () => {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  return (
+    <section id="contact" className="section-pad" style={{ position:'relative', overflow:'hidden' }}>
+      <BlobC style={{ position:'absolute', left:-150, bottom:-100, width:500, color:'var(--yellow)', opacity:0.35, zIndex:0 }} className="blob-float-1"/>
+      <div style={{ position:'relative', zIndex:1, textAlign:'center', maxWidth:580, margin:'0 auto' }}>
+        <p style={{ fontSize:13, fontWeight:600, letterSpacing:'0.12em', color:'var(--brown-light)', textTransform:'uppercase', marginBottom:12 }}>Stay in touch</p>
+        <h2 style={{ fontFamily:'Playfair Display', fontSize:'clamp(26px, 3.5vw, 46px)', fontWeight:700, lineHeight:1.2, letterSpacing:'-0.5px', marginBottom:20 }}>
+          Be first to know<br/>when new pieces arrive
+        </h2>
+        <p style={{ fontSize:16, lineHeight:1.7, color:'var(--brown-light)', marginBottom:40 }}>
+          Each piece goes fast. Join our small list to get notified first.
+        </p>
+        {sent ? (
+          <div style={{ background:'var(--yellow)', borderRadius:20, padding:'24px 32px', fontSize:18, fontFamily:'Playfair Display', fontWeight:600 }}>
+            ✓ You're on the list — thank you!
+          </div>
+        ) : (
+          <div className="email-row">
+            <input type="email" placeholder="your@email.com"
+              value={email} onChange={e => setEmail(e.target.value)}
+              style={{
+                flex:1, padding:'16px 24px', borderRadius:100,
+                border:'1.5px solid oklch(28% 0.04 55 / 0.2)',
+                background:'white', fontSize:15, outline:'none',
+                fontFamily:'DM Sans', color:'var(--brown)',
+              }}
+              onFocus={e => e.target.style.borderColor='var(--brown)'}
+              onBlur={e => e.target.style.borderColor='oklch(28% 0.04 55 / 0.2)'}
+            />
+            <button onClick={() => email && setSent(true)} style={{
+              background:'var(--brown)', color:'var(--cream)',
+              border:'none', borderRadius:100, padding:'16px 28px',
+              fontSize:15, fontWeight:500, cursor:'pointer',
+              whiteSpace:'nowrap', transition:'opacity 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity=0.85}
+            onMouseLeave={e => e.currentTarget.style.opacity=1}
+            >Join List</button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+// ---- Footer ----
+const Footer = () => (
+  <footer style={{ background:'var(--brown)', color:'var(--cream)', padding:'40px 10vw' }}>
+    <div className="footer-inner">
+      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+        <svg width="26" height="26" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="14" fill="var(--yellow)"/>
+          <ellipse cx="16" cy="13" rx="6" ry="7" fill="var(--brown)"/>
+          <ellipse cx="16" cy="13" rx="3" ry="4" fill="var(--yellow)"/>
+        </svg>
+        <span style={{ fontFamily:'Playfair Display', fontWeight:600, fontSize:16 }}>South Tomorrow</span>
+      </div>
+      <p style={{ fontSize:13, opacity:0.5 }}>© 2026 South Tomorrow. Handmade with love.</p>
+      <div style={{ display:'flex', gap:24 }}>
+        {['Instagram','Email'].map(s => (
+          <a key={s} href="#" style={{ color:'var(--cream)', opacity:0.6, fontSize:13, textDecoration:'none', transition:'opacity 0.2s' }}
+            onMouseEnter={e => e.target.style.opacity=1}
+            onMouseLeave={e => e.target.style.opacity=0.6}
+          >{s}</a>
+        ))}
+      </div>
+    </div>
+  </footer>
+);
+
+// ---- Tweaks Panel ----
+const TweaksPanel = ({ tweaks, setTweaks, visible }) => {
+  if (!visible) return null;
+  return (
+    <div style={{
+      position:'fixed', bottom:24, right:24, zIndex:500,
+      background:'white', borderRadius:20, padding:24, width:280,
+      boxShadow:'0 16px 60px oklch(28% 0.04 55 / 0.2)',
+    }}>
+      <h3 style={{ fontFamily:'Playfair Display', fontSize:16, fontWeight:600, marginBottom:16 }}>Tweaks</h3>
+      <label style={{ display:'block', fontSize:13, color:'var(--brown-light)', marginBottom:6 }}>Hero tagline</label>
+      <textarea value={tweaks.heroTitle}
+        onChange={e => {
+          const val = e.target.value;
+          setTweaks(t => ({ ...t, heroTitle:val }));
+          window.parent.postMessage({ type:'__edit_mode_set_keys', edits:{ heroTitle:val } }, '*');
+        }}
+        rows={3}
+        style={{ width:'100%', borderRadius:10, border:'1.5px solid oklch(28% 0.04 55 / 0.15)', padding:'8px 12px', fontFamily:'DM Sans', fontSize:13, resize:'none', marginBottom:16, outline:'none' }}
+      />
+      <label style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, cursor:'pointer' }}>
+        <input type="checkbox" checked={tweaks.showAbout}
+          onChange={e => {
+            const val = e.target.checked;
+            setTweaks(t => ({ ...t, showAbout:val }));
+            window.parent.postMessage({ type:'__edit_mode_set_keys', edits:{ showAbout:val } }, '*');
+          }}
+        />
+        Show "About" section
+      </label>
+    </div>
+  );
+};
+
+// ---- App ----
+const App = () => {
+  const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
+  const [tweaksVisible, setTweaksVisible] = useState(false);
+  useEffect(() => {
+    window.addEventListener('message', e => {
+      if (e.data?.type === '__activate_edit_mode') setTweaksVisible(true);
+      if (e.data?.type === '__deactivate_edit_mode') setTweaksVisible(false);
+    });
+    window.parent.postMessage({ type:'__edit_mode_available' }, '*');
+  }, []);
+  return (
+    <>
+      <Nav/>
+      <Hero tweaks={tweaks}/>
+      <Collection/>
+      <Story show={tweaks.showAbout}/>
+      <Process/>
+      <Contact/>
+      <Footer/>
+      <TweaksPanel tweaks={tweaks} setTweaks={setTweaks} visible={tweaksVisible}/>
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

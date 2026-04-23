@@ -4,13 +4,23 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## 2026-04-21
+
+### Docs
+- Sync CLAUDE.md: add `/api/settings/discount` route, `payment_failed` notification type, pricing/discount section, theme section, admin settings page
+- Fix HTTP method for `/api/settings/discount` in README (`PUT` -> `PATCH`)
+
+---
+
 ## 2026-04-15
 
 ### Added
-- Site-wide discount feature with admin settings panel
+- Site-wide percentage discount configurable from admin settings panel (`/api/settings/discount`)
+- Per-product `discountPrice` field with server-side validation (must be less than `price`)
+- `pricing.ts`: `calculateEffectivePrice`, `discountPercent`, `SiteWideDiscount` utilities
 
 ### Changed
-- Dark mode support across various components and pages
+- Dark mode support across all pages and components
 
 ### Docs
 - Price discount feature design spec and implementation plan

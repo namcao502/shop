@@ -174,9 +174,10 @@ export default function AdminProductsPage() {
   if (creating || editing) {
     return (
       <div>
-        <h1 className="mb-4 text-2xl font-bold text-gray-900">
+        <h1 className="font-display mb-3 text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
           {editing ? t("admin.editProduct") : t("admin.newProduct")}
         </h1>
+        <div className="mb-6 h-0.5 w-8 rounded-full bg-amber-400" />
         {saveError && (
           <p className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-600">{saveError}</p>
         )}
@@ -197,12 +198,15 @@ export default function AdminProductsPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{t("admin.products")}</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+          {t("admin.products")}
+        </h1>
+        <div className="mt-1 h-0.5 w-8 rounded-full bg-amber-400" />
         <Button onClick={() => setCreating(true)}>{t("admin.addProduct")}</Button>
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-3">
           <span className="text-sm font-semibold text-amber-800">
             {selectedIds.size} selected
           </span>
@@ -238,10 +242,10 @@ export default function AdminProductsPage() {
       )}
 
       {/* Desktop table */}
-      <div className="hidden rounded-lg border bg-white md:block">
+      <div className="hidden rounded-2xl bg-white shadow-sm dark:bg-stone-800 md:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b text-left text-xs uppercase text-gray-500">
+            <tr className="border-b text-left text-xs uppercase text-stone-500 dark:text-stone-400">
               <th className="px-4 py-2 w-8">
                 <input
                   type="checkbox"
@@ -303,16 +307,16 @@ export default function AdminProductsPage() {
       {/* Mobile cards */}
       <div className="space-y-3 md:hidden">
         {products.map((product) => (
-          <div key={product.id} className="rounded-lg border bg-white p-4">
+          <div key={product.id} className="rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-800">
             <div className="flex items-start justify-between gap-2">
-              <p className="font-medium text-gray-900">{product.name}</p>
+              <p className="font-medium text-stone-900 dark:text-stone-100">{product.name}</p>
               {product.isPublished ? (
                 <Badge variant="confirmed">{t("admin.published")}</Badge>
               ) : (
                 <Badge variant="cancelled">{t("admin.draft")}</Badge>
               )}
             </div>
-            <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
+            <div className="mt-1 flex items-center gap-3 text-sm text-stone-500 dark:text-stone-400">
               <span>{formatPrice(product.price, locale === "vi" ? "vi-VN" : "en-US")}</span>
               <span>·</span>
               <span className={product.stock < 5 ? "font-bold text-red-600" : ""}>

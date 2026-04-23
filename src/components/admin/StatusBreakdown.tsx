@@ -22,12 +22,12 @@ export function StatusBreakdown({ counts }: StatusBreakdownProps) {
   const { t } = useLocale();
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm">
-      <h3 className="mb-3 font-medium text-stone-900">{t("admin.orderStatus")}</h3>
+    <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-stone-800">
+      <h3 className="mb-3 font-medium text-stone-900 dark:text-stone-100">{t("admin.orderStatus")}</h3>
       <div className="flex flex-wrap gap-3">
         {statusKeys.map((status) => (
-          <div key={status} className="rounded-lg border border-stone-100 px-3 py-2 text-sm">
-            <span className="text-stone-500">
+          <div key={status} className="rounded-lg border border-stone-100 px-3 py-2 text-sm dark:border-stone-700">
+            <span className="text-stone-500 dark:text-stone-400">
               {t(`status.${status}` as TranslationKey)}{" "}
             </span>
             <span className={`font-bold ${colors[status]}`}>

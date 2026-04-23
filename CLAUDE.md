@@ -51,6 +51,7 @@ Customer-facing reads (products, categories) hit Firestore directly from the cli
 | `/api/notifications/read-all` | `PATCH` | Marks all notifications as read for the authenticated user |
 | `/api/products` | `POST` | Create product (admin only) |
 | `/api/products/[id]` | `PUT`, `DELETE` | Update or delete product (admin only) |
+| `/api/settings/discount` | `GET`, `PATCH` | Read or update site-wide discount setting (admin only) |
 
 ### Order creation (the critical path)
 
@@ -76,7 +77,20 @@ Each action writes a corresponding notification via `writeNotification()`.
 - Stored in the `notifications` Firestore collection.
 - `NotificationBell` (`src/components/layout/NotificationBell.tsx`) polls and displays unread counts in the header.
 
-`NotificationType` covers: `order_placed`, `order_shipped`, `order_delivered`, `order_cancelled`, `payment_confirmed`, `address_updated`, `new_order`, `payment_received`, `cancel_requested`, `address_update_requested`, `order_deleted`.
+`NotificationType` covers: `order_placed`, `order_shipped`, `order_delivered`, `order_cancelled`, `payment_confirmed`, `payment_failed`, `address_updated`, `new_order`, `payment_received`, `cancel_requested`, `address_update_requested`, `order_deleted`.
+
+### Pricing and discounts
+
+`src/lib/pricing.ts` exports:
+- `SiteWideDiscount` — `{ active: boolean; value: number }` (percentage, 1-99)
+- `calculateEffectivePrice(product, siteWide?)` — returns the lowest applicable price: site-wide discount beats `discountPrice`; `discountPrice` beats `price`
+- `discountPercent(original, effective)` — rounds the percentage difference for display
+
+Products also have an optional `discountPrice?: number` field for per-product discounts. Enforced server-side: `POST /api/orders` fetches the live discount setting before writing prices; `PUT /api/products/[id]` rejects a `discountPrice` >= `price`.
+
+### Theme
+
+`ThemeProvider` (`src/lib/theme-context.tsx`) exposes `hue` (0-360) and `rainbow` (boolean), persisted in `localStorage`. `ThemePicker` in the header lets users drag a hue slider or enable rainbow mode (hue cycles automatically). The `--theme-hue` CSS variable drives `.theme-accent` utility classes used on buttons, badges, and accent surfaces. Dark mode is supported across all pages and components.
 
 ### Cart
 
@@ -145,6 +159,8 @@ Pages under `src/app/admin/`:
 
 Admin-specific components in `src/components/admin/`: `KPICards`, `RecentOrdersTable`, `TopProducts`, `StatusBreakdown`, `OrderActions`, `ProductForm`, `ImageUploader`.
 
+- `settings/page.tsx` — site-wide discount toggle and percentage input (calls `/api/settings/discount`)
+
 ## Firestore security rules
 
 `firestore.rules` — products/categories are public read; orders are write-protected (all mutations via Admin SDK); `isAdmin` field on user documents is write-protected from clients.
@@ -166,4 +182,5 @@ src/app/
     page.tsx                # dashboard
     orders/page.tsx         # order management
     products/page.tsx       # product management
+    settings/page.tsx       # site-wide settings (discount)
 ```

@@ -225,7 +225,10 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">{t("checkout.title")}</h1>
+      <h1 className="font-display mb-3 text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+        {t("checkout.title")}
+      </h1>
+      <div className="mb-8 h-0.5 w-8 rounded-full bg-amber-400" />
 
       <div className="space-y-8">
         {/* Stock warnings */}
@@ -234,7 +237,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Order summary */}
-        <div className="rounded-lg border bg-gray-50 p-4 dark:border-stone-700 dark:bg-stone-800/60">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-800">
           <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{t("checkout.orderSummary")}</h2>
           {items.map((item) => (
             <div
@@ -275,7 +278,7 @@ export default function CheckoutPage() {
         <PaymentSelector selected={paymentMethod} onSelect={setPaymentMethod} />
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+          <div className="rounded-2xl bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
             <p>{error}</p>
             {createdOrderId && (
               <p className="mt-2">

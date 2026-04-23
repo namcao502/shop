@@ -81,7 +81,7 @@ Customer reads (products, categories) hit Firestore directly from the client. Al
 | `/api/notifications/read-all` | `PATCH` | Marks all notifications read for the current user |
 | `/api/products` | `POST` | Create product (admin only) |
 | `/api/products/[id]` | `PUT`, `DELETE` | Update or delete product (admin only) |
-| `/api/settings/discount` | `GET`, `PUT` | Read or update site-wide discount setting (admin only) |
+| `/api/settings/discount` | `GET`, `PATCH` | Read or update site-wide discount setting (admin only) |
 
 ### Order flow
 

@@ -1,14 +1,14 @@
 import { z } from "zod";
 import type { ShippingAddress } from "@/lib/types";
 
+// Accepts: 0xxxxxxxxx (10 digits) or +84xxxxxxxxx (12 chars with country code)
+const vnPhoneRegex = /^(?:0[0-9]{9}|\+84[0-9]{9})$/;
+
 export const shippingAddressSchema = z.object({
   name: z.string().min(2),
   phone: z
     .string()
-    .regex(/^\+?[\d\s\-(). ]{7,20}$/)
-    .refine((val) => val.replace(/\D/g, "").length >= 7, {
-      message: "Phone number must contain at least 7 digits",
-    }),
+    .regex(vnPhoneRegex, "Enter a valid Vietnamese phone number (e.g. 0901234567)"),
   address: z.string().min(5),
   ward: z.string().min(1),
   province: z.string().min(1),

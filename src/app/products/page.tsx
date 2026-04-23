@@ -52,10 +52,10 @@ export default function ProductsPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 rounded bg-gray-200" />
+          <div className="h-8 w-48 rounded-full bg-stone-200 dark:bg-stone-700" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="aspect-square rounded bg-gray-200" />
+              <div key={i} className="rounded-2xl bg-stone-200 dark:bg-stone-700" style={{ aspectRatio: '3/4' }} />
             ))}
           </div>
         </div>
@@ -65,7 +65,10 @@ export default function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">{t("products.title")}</h1>
+      <h1 className="font-display mb-3 text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+        {t("products.title")}
+      </h1>
+      <div className="mb-8 h-0.5 w-8 rounded-full bg-amber-400" />
       <div className="mb-6">
         <CategoryFilter
           categories={categories}

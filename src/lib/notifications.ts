@@ -30,8 +30,8 @@ export function writeNotification(
   if (tx) {
     tx.set(ref, payload);
   } else {
-    ref.set(payload).catch((err: unknown) => {
-      console.error("writeNotification failed", err);
+    ref.set(payload).catch(() => {
+      // fire-and-forget: notification write failures are non-fatal
     });
   }
 }

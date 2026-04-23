@@ -188,6 +188,8 @@ export type TranslationKey =
   | "admin.removeDiscount"
   | "admin.percentOffAll"
   | "admin.siteWideSaleActive"
+  | "admin.lowStockAlert"
+  | "admin.lowStockItem"
   // product form
   | "form.productName"
   | "form.slug"
@@ -214,6 +216,10 @@ export type TranslationKey =
   | "notification.markAllRead"
   | "notification.title"
   | "notification.empty"
+  | "notification.timeJustNow"
+  | "notification.timeMinutesAgo"
+  | "notification.timeHoursAgo"
+  | "notification.timeDaysAgo"
   // notification bell (client-side translated by type)
   | "notification.order_placed.title"
   | "notification.order_placed.message"

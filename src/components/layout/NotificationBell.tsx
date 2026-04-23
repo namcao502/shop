@@ -9,15 +9,15 @@ import { useLocale } from "@/lib/i18n/locale-context";
 import type { NotificationType } from "@/lib/types";
 import type { TranslationKey } from "@/lib/i18n/translations";
 
-function formatRelative(date: Date): string {
+function formatRelativeLocalized(date: Date, t: (key: TranslationKey) => string): string {
   const diffMs = Date.now() - date.getTime();
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t("notification.timeJustNow");
+  if (mins < 60) return t("notification.timeMinutesAgo").replace("{n}", String(mins));
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("notification.timeHoursAgo").replace("{n}", String(hours));
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return t("notification.timeDaysAgo").replace("{n}", String(days));
 }
 
 function notificationText(
@@ -77,17 +77,17 @@ export function NotificationBell() {
         </svg>
         {unreadCount > 0 && (
           <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
       {/* Popup */}
       {open && (
-        <div className="absolute right-0 top-10 z-50 w-80 rounded-lg border border-stone-200 bg-white shadow-xl">
+        <div className="absolute right-0 top-10 z-50 w-80 rounded-lg border border-stone-200 bg-white shadow-xl dark:border-stone-700 dark:bg-stone-800">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
-            <span className="text-sm font-bold text-stone-900">{t("notification.title")}</span>
+          <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3 dark:border-stone-700">
+            <span className="text-sm font-bold text-stone-900 dark:text-stone-100">{t("notification.title")}</span>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
@@ -108,9 +108,9 @@ export function NotificationBell() {
               {notifications.map((n) => (
                 <div
                   key={n.id}
-                  className={`border-b border-stone-100 px-4 py-3 last:border-0 ${
+                  className={`border-b border-stone-100 px-4 py-3 last:border-0 dark:border-stone-700 ${
                     !n.read
-                      ? "border-l-2 theme-accent-border bg-stone-50"
+                      ? "border-l-2 theme-accent-border bg-stone-50 dark:bg-stone-700/40"
                       : "opacity-70"
                   }`}
                 >
@@ -119,9 +119,9 @@ export function NotificationBell() {
                     return (
                       <>
                         <div className="flex items-start justify-between gap-2">
-                          <span className="text-xs font-bold text-stone-900">{title}</span>
+                          <span className="text-xs font-bold text-stone-900 dark:text-stone-100">{title}</span>
                           <span className="shrink-0 text-xs text-stone-400">
-                            {formatRelative(n.createdAt)}
+                            {formatRelativeLocalized(n.createdAt, t)}
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-stone-600">{message}</p>

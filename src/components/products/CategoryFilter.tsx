@@ -22,7 +22,7 @@ export function CategoryFilter({
         className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
           selected === null
             ? "bg-amber-600 text-white"
-            : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"
+            : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600"
         }`}
       >
         {t("products.all")}
@@ -34,7 +34,7 @@ export function CategoryFilter({
           className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
             selected === cat.id
               ? "bg-amber-600 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"
+              : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600"
           }`}
         >
           {cat.name}

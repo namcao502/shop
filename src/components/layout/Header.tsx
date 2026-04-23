@@ -33,7 +33,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-stone-100/80 theme-header-bg backdrop-blur-sm dark:border-stone-700/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <Link href="/" className="text-xl font-bold text-stone-900 transition-colors hover:text-amber-700 dark:text-stone-100 dark:hover:text-amber-400">
+          <Link href="/" className="font-display text-xl font-bold text-stone-900 transition-colors hover:text-amber-700 dark:text-stone-100 dark:hover:text-amber-400">
             {t("site.name")}
           </Link>
           <button

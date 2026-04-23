@@ -12,7 +12,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const base = "inline-flex items-center justify-center rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+  const base = "inline-flex items-center justify-center rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
     primary: "theme-accent hover:brightness-90 active:brightness-75",

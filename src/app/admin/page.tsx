@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { KPICards } from "@/components/admin/KPICards";
 import { RecentOrdersTable } from "@/components/admin/RecentOrdersTable";
@@ -9,12 +9,13 @@ import { TopProducts } from "@/components/admin/TopProducts";
 import { StatusBreakdown } from "@/components/admin/StatusBreakdown";
 import { formatPrice } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/locale-context";
-import type { Order, OrderStatus } from "@/lib/types";
+import type { Order, OrderStatus, Product } from "@/lib/types";
 
 export default function AdminDashboardPage() {
   const { locale, t } = useLocale();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lowStockProducts, setLowStockProducts] = useState<Array<{ id: string; name: string; stock: number }>>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -33,6 +34,20 @@ export default function AdminDashboardPage() {
       });
 
       setOrders(allOrders);
+
+      const lowStockSnap = await getDocs(
+        query(
+          collection(db, "products"),
+          where("isPublished", "==", true),
+          where("stock", "<=", 5)
+        )
+      );
+      const lowStock = lowStockSnap.docs.map((d) => {
+        const data = d.data() as Product;
+        return { id: d.id, name: data.name, stock: data.stock };
+      });
+      setLowStockProducts(lowStock);
+
       setLoading(false);
     }
     fetchData();
@@ -108,10 +123,24 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="border-b border-stone-100/90 pb-4">
-        <h1 className="text-2xl font-extrabold tracking-tight text-stone-900">
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-100">
           {t("admin.dashboard")}
         </h1>
       </div>
+      {lowStockProducts.length > 0 && (
+        <div className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-900/20">
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+            {t("admin.lowStockAlert").replace("{n}", String(lowStockProducts.length)).replace("{s}", lowStockProducts.length > 1 ? "s" : "")}
+          </p>
+          <ul className="mt-1 space-y-0.5">
+            {lowStockProducts.map((p) => (
+              <li key={p.id} className="text-xs text-amber-700 dark:text-amber-400">
+                {t("admin.lowStockItem").replace("{name}", p.name).replace("{stock}", String(p.stock))}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <KPICards kpis={kpis} />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

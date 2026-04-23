@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { toSlug } from "@/lib/slug";
 import type { Product, Category } from "@/lib/types";
 
 interface ProductFormProps {
@@ -39,12 +40,7 @@ export function ProductForm({
   const handleNameChange = (value: string) => {
     setName(value);
     if (!product) {
-      setSlug(
-        value
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "")
-      );
+      setSlug(toSlug(value));
     }
   };
 
@@ -105,7 +101,7 @@ export function ProductForm({
   };
 
   return (
-    <div className="space-y-4 rounded-lg border bg-white p-6">
+    <div className="space-y-4 rounded-2xl bg-white p-6 shadow-sm dark:bg-stone-800 dark:ring-1 dark:ring-stone-700">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Input
@@ -125,11 +121,11 @@ export function ProductForm({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium text-gray-700">{t("form.description")}</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-stone-300">{t("form.description")}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100"
           rows={3}
         />
       </div>
@@ -144,14 +140,14 @@ export function ProductForm({
           {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">{t("form.discountPrice")}</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-stone-300">{t("form.discountPrice")}</label>
           <div className="mt-1 flex gap-1">
             <input
               type="number"
               value={discountInput}
               onChange={(e) => setDiscountInput(e.target.value)}
               placeholder="—"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100"
             />
             <button
               type="button"
@@ -159,7 +155,7 @@ export function ProductForm({
               className={`shrink-0 rounded-lg border px-2 py-1 text-xs font-semibold transition-colors ${
                 discountMode === "percent"
                   ? "border-amber-500 bg-amber-50 text-amber-700"
-                  : "border-gray-300 bg-gray-50 text-gray-600"
+                  : "border-gray-300 bg-gray-50 text-gray-600 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-300"
               }`}
             >
               {discountMode === "percent" ? "%" : "VND"}
@@ -179,11 +175,11 @@ export function ProductForm({
           {errors.stock && <p className="mt-1 text-xs text-red-600">{errors.stock}</p>}
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">{t("form.category")}</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-stone-300">{t("form.category")}</label>
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100"
           >
             <option value="">{t("form.selectCategory")}</option>
             {categories.map((cat) => (
@@ -197,7 +193,7 @@ export function ProductForm({
       </div>
 
       <div>
-        <label className="text-sm font-medium text-gray-700">
+        <label className="text-sm font-medium text-gray-700 dark:text-stone-300">
           {t("form.images")}
         </label>
         <div className="mt-2">
@@ -212,7 +208,7 @@ export function ProductForm({
           onChange={(e) => setIsPublished(e.target.checked)}
           className="accent-amber-600"
         />
-        <span className="text-sm text-gray-700">{t("form.published")}</span>
+        <span className="text-sm text-gray-700 dark:text-stone-300">{t("form.published")}</span>
       </label>
 
       <div className="flex gap-3">

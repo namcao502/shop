@@ -1,7 +1,7 @@
 // src/lib/verify-admin.ts
 import { adminAuth } from "./firebase/admin";
 
-interface VerifyResult {
+export interface VerifyResult {
   uid: string;
   isAdmin: boolean;
 }

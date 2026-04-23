@@ -2,6 +2,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { verifyAuth } from "@/lib/verify-admin";
+import { z } from "zod";
+
+const bodySchema = z.object({
+  orderId: z.string().min(1),
+  orderCode: z.string().min(1),
+});
 
 export async function POST(request: NextRequest) {
   const authResult = await verifyAuth(request.headers.get("Authorization"));
@@ -9,15 +15,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { orderId, orderCode } = body;
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
-  if (!orderId || !orderCode) {
+  const parsed = bodySchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing orderId or orderCode" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid request" },
       { status: 400 }
     );
   }
+
+  const { orderId, orderCode } = parsed.data;
 
   try {
     const orderSnap = await adminDb.collection("orders").doc(orderId).get();

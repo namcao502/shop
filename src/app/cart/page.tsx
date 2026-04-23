@@ -12,7 +12,10 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">{t("cart.title")}</h1>
+      <h1 className="font-display mb-3 text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+        {t("cart.title")}
+      </h1>
+      <div className="mb-8 h-0.5 w-8 rounded-full bg-amber-400" />
 
       {items.length === 0 ? (
         <div className="py-12 text-center">

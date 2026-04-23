@@ -97,17 +97,17 @@ export default function ProductDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2 md:items-start">
         {/* Images */}
         <div>
-          <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+          <div className="relative overflow-hidden rounded-2xl bg-stone-100" style={{ aspectRatio: '3/4' }}>
             <img
               src={product.images[selectedImage] ?? "/placeholder.svg"}
               alt={product.name}
               className="h-full w-full object-cover"
             />
             {hasDiscount && (
-              <div className="absolute left-3 top-3 rounded bg-red-600 px-2 py-1 text-sm font-bold text-white">
+              <div className="absolute left-3 top-3 rounded-full bg-red-600 px-3 py-0.5 text-sm font-bold text-white">
                 -{pct}%
               </div>
             )}
@@ -118,8 +118,8 @@ export default function ProductDetailPage() {
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`h-16 w-16 overflow-hidden rounded border-2 transition-all hover:opacity-80 active:opacity-60 ${
-                    selectedImage === i ? "border-amber-600" : "border-transparent hover:border-gray-300"
+                  className={`h-16 w-16 overflow-hidden rounded-lg border-2 transition-all hover:opacity-80 active:opacity-60 ${
+                    selectedImage === i ? "border-amber-600" : "border-transparent hover:border-stone-300"
                   }`}
                 >
                   <img src={img} alt="" className="h-full w-full object-cover" />
@@ -131,7 +131,7 @@ export default function ProductDetailPage() {
 
         {/* Info */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{product.name}</h1>
+          <h1 className="font-display text-2xl font-bold text-stone-900 dark:text-stone-100">{product.name}</h1>
           <div className="mt-2">
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-bold text-amber-700">
@@ -160,14 +160,14 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
                 >
                   -
                 </button>
                 <span className="w-8 text-center">{qty}</span>
                 <button
                   onClick={() => setQty(Math.min(product.stock, qty + 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
                 >
                   +
                 </button>

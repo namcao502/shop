@@ -3,10 +3,9 @@
 import { useAuth } from "@/lib/firebase/auth-context";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { useLocale } from "@/lib/i18n/locale-context";
+import { AUTH_TIMEOUT_MS } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const AUTH_TIMEOUT_MS = 5000;
 
 export default function AdminLayout({
   children,
